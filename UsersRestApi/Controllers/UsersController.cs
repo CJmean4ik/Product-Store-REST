@@ -20,10 +20,10 @@ namespace UsersRestApi.Controllers
         public async Task<ActionResult<OperationStatusResponse>> SignIn([FromBody] UserPostDto user)
         {
             var result = await _usersService.LoginUser(user, HttpContext);
-            return Json(new 
+            return Json(new
             {
                 Body = result,
-                Code = result.Status == StatusName.Error    
+                Code = result.Status == StatusName.Error
                     || result.Status == StatusName.Warning ?
                     400 : 200
             });
