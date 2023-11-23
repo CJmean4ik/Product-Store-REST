@@ -6,7 +6,7 @@ using UsersRestApi.Repositories.OperationStatus;
 
 namespace UsersRestApi.Repositories.Interfaces
 {
-    public class UserRepositoryEF : IUserRepository<UserEntity, OperationStatusResponse>
+    public class UserRepositoryEF : IUserRepository<UserEntity, OperationStatusResponseBase>
     {
         private DatabaseContext _db;
         private ILogger<UserRepositoryEF> _logger;
@@ -17,7 +17,7 @@ namespace UsersRestApi.Repositories.Interfaces
             _logger = logger;
         }
 
-        public async Task<OperationStatusResponse> Create(UserEntity entity)
+        public async Task<OperationStatusResponseBase> Create(UserEntity entity)
         {
             try
             {
@@ -29,20 +29,20 @@ namespace UsersRestApi.Repositories.Interfaces
                 {
                     string WARRNING_MESSAGE = $"User with that username: [{entity.Username}] and email: [{entity.Email}] - alredy exist in database";
                     _logger.LogWarning(WARRNING_MESSAGE);
-                    return OperationStatusResonceBuilder.CreateCustomStatus(WARRNING_MESSAGE, StatusName.Warning);
+                    return OperationStatusResonceBuilder.CreateStatusAuthorized();
                 }
 
                 await _db.Users.AddAsync(entity);
                 await _db.SaveChangesAsync();
 
                 _logger.LogInformation($"Users Successful added id: [{entity.Id}]");
-                return OperationStatusResonceBuilder.CreateSuccessfulStatusAdding();
+                return OperationStatusResonceBuilder.CreateStatusAdding(entity);
             }
             catch (Exception ex)
             {
                 string ERROR_MESSAGE = $"Failed to create entity. Reason: [{ex.Message}]. Time: " + DateTime.Now;
                 _logger.LogWarning(ERROR_MESSAGE);
-                return OperationStatusResonceBuilder.CreateCustomStatus(ERROR_MESSAGE, StatusName.Error);
+                return OperationStatusResonceBuilder.CreateStatusError(message: ERROR_MESSAGE);
             }
         }
         public async Task<UserEntity> GetByName(string name)

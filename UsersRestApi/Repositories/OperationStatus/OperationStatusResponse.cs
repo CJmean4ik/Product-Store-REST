@@ -2,8 +2,10 @@
 
 namespace UsersRestApi.Repositories.OperationStatus
 {
-    public  class OperationStatusResponse : OperationStatusResponseBase
+    public  class OperationStatusResponse<T> : OperationStatusResponseBase
     {
-        public JsonNode? JsonBody { get; set; }
+        public T? Body { get; set; }
     }
+
+
 }

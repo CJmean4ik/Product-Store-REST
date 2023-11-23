@@ -36,7 +36,7 @@ namespace UsersRestApi.Repositories
                 await _db.SaveChangesAsync();
 
                 _logger.LogInformation($"Entity successfully created. Identifier: [{entity!.ProductId}]. Time: " + DateTime.Now);
-                return OperationStatusResonceBuilder.CreateSuccessfulStatusAdding($"Identifier: [{entity!.ProductId}]");
+                return OperationStatusResonceBuilder.CreateStatusAdding($"Identifier: [{entity!.ProductId}]");
             }
             catch (Exception ex)
             {
@@ -68,7 +68,7 @@ namespace UsersRestApi.Repositories
 
                 _db.Products.Remove(product);
                 await _db.SaveChangesAsync();
-                return OperationStatusResonceBuilder.CreateSuccessfulStatusRemoving();
+                return OperationStatusResonceBuilder.CreateStatusRemoving();
             }
             catch (Exception ex)
             {
@@ -146,7 +146,7 @@ namespace UsersRestApi.Repositories
 
                 await _argumentChanger.SaveChangesAsync(_db);
                 _logger.LogInformation($"Entity successfully updated. Identifier: [{productFromDb.ProductId}]");
-                return OperationStatusResonceBuilder.CreateSuccessfulStatusUpdating();
+                return OperationStatusResonceBuilder.CreateStatusUpdating();
             }
             catch (Exception ex)
             {
