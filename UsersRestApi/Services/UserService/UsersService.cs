@@ -62,7 +62,7 @@ namespace UsersRestApi.Services.UserService
                 return OperationStatusResonceBuilder.CreateStatusError(ex);
             }
         }
-        public OperationStatusResponseBase RegisterUser(User user)
+        public OperationStatusResponseBase SendMailVerifyCode(UserPostDto user)
         {
             _emailSender.GenerateCode();
             _emailSender.SendCode(user.Email);

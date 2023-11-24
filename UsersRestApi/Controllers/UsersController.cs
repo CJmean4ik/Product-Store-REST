@@ -30,7 +30,7 @@ namespace UsersRestApi.Controllers
         [HttpPost("/sign-up")]
         public ActionResult<OperationStatusResponseBase> SignUp(UserPostDto userForRegistering)
         {
-            var result = _usersService.RegisterUser(userForRegistering);
+            var result = _usersService.SendMailVerifyCode(userForRegistering);
             HttpContext.Response.Cookies.Append("NowIsVerifyMail", "true");
 
             return Json(new { Body = result, Code = 200 });
