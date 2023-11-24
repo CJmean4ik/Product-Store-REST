@@ -15,13 +15,13 @@ namespace UsersRestApi.Services.UserService
 {
     public class UsersService
     {
-        private IUserRepository<UserEntity, OperationStatusResponse> _repository;
+        private IUserRepository<UserEntity, OperationStatusResponseBase> _repository;
         private IPasswordHasher<UserEntity> _passwordHasher;
         private IEmailVerifySender _emailSender;
         private IMemoryCache _memoryCache;
         private IMapper _mapper;
 
-        public UsersService(IUserRepository<UserEntity, OperationStatusResponse> repository,
+        public UsersService(IUserRepository<UserEntity, OperationStatusResponseBase> repository,
                                IPasswordHasher<UserEntity> passwordHasher,
                                IEmailVerifySender emailSender,
                                IMemoryCache memoryCache,
@@ -34,7 +34,7 @@ namespace UsersRestApi.Services.UserService
             _mapper = mapper;
         }
 
-        public async Task<OperationStatusResponse> LoginUser(UserPostDto userForLogin, HttpContext httpContext)
+        public async Task<OperationStatusResponseBase> LoginUser(UserPostDto userForLogin, HttpContext httpContext)
         {
             try
             {
@@ -43,7 +43,7 @@ namespace UsersRestApi.Services.UserService
                 var user = _mapper.Map<UserEntity, User>(userEntity);
 
                 if (!_passwordHasher.Decryption(userForLogin.EnteredPassword, user.Salt, user.HashPassword))
-                    return OperationStatusResonceBuilder.CreateCustomStatus("Invalid password. Entry is not possible", StatusName.Warning);
+                    return OperationStatusResonceBuilder.CreateStatusWrongPassword();
 
                 var claims = new List<Claim>
                 {
@@ -55,37 +55,35 @@ namespace UsersRestApi.Services.UserService
                 var claimsPrincipal = new ClaimsPrincipal(claimsIdentity);
 
                 await httpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, claimsPrincipal);
-                return OperationStatusResonceBuilder.CreateCustomStatus("The user is authorized", StatusName.Successfully);
+                return OperationStatusResonceBuilder.CreateStatusAuthorized();
             }
             catch (Exception ex)
             {
-               return OperationStatusResonceBuilder.CreateCustomStatus(ex.Message, StatusName.Error);
+                return OperationStatusResonceBuilder.CreateStatusError(ex);
             }
         }
-        public OperationStatusResponse RegisterUser(UserPostDto userForRegistering)
+        public OperationStatusResponseBase RegisterUser(User user)
         {
             _emailSender.GenerateCode();
-            _emailSender.SendCode(userForRegistering.Email);
+            _emailSender.SendCode(user.Email);
 
-            _memoryCache.Set("CurrentUser", userForRegistering);
+            _memoryCache.Set("CurrentUser", user);
             _memoryCache.Set("CurrentCode", _emailSender.Code);
 
-            return OperationStatusResonceBuilder.CreateCustomStatus("Mail code has been sended", StatusName.SendedMailCode);
+            return OperationStatusResonceBuilder.CreateStatusSendedMailCode();
         }
         public bool IsVerifyMail(string code)
         {
             string verifyCode = _memoryCache.Get("CurrentCode")!.ToString()!;
 
-            if (!_emailSender.VerifyCode(code, verifyCode))
-            {
-                _memoryCache.Remove("CurrentCode");
-                return false;
-            }
-
             _memoryCache.Remove("CurrentCode");
+
+            if (!_emailSender.VerifyCode(code, verifyCode))
+                return false;
+
             return true;
         }
-        public async Task<OperationStatusResponse> RegisterUser()
+        public async Task<OperationStatusResponseBase> RegisterUser()
         {
             if (!_memoryCache.TryGetValue("CurrentUser", out UserPostDto? userDto))
                 return OperationStatusResonceBuilder.CreateCustomStatus("User data was unexpectedly lost", StatusName.Warning);
@@ -98,7 +96,7 @@ namespace UsersRestApi.Services.UserService
 
             _memoryCache.Remove("CurrentUser");
 
-            return OperationStatusResonceBuilder.CreateCustomStatus("User Successful aded", StatusName.Created);
+            return OperationStatusResonceBuilder.CreateStatusRegistered();
         }
     }
 }

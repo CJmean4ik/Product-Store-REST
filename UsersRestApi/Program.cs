@@ -37,7 +37,7 @@ namespace UsersRestApi
 
             builder.Services.AddScoped<IProductRepository, ProductRepositoryEF>();
             builder.Services.AddScoped<IProductModifierArgumentChanger, ProductModifierArgumentChanger>();
-            builder.Services.AddScoped<IUserRepository<UserEntity, OperationStatusResponse>, UserRepositoryEF>();
+            builder.Services.AddScoped<IUserRepository<UserEntity, OperationStatusResponseBase>, UserRepositoryEF>();
             builder.Services.AddScoped<IPasswordHasher<UserEntity>, PasswordHasher>();
             builder.Services.AddScoped<IEmailVerifySender, EmailVerifySender>();
 

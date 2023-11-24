@@ -133,10 +133,9 @@ namespace UsersRestApi.Repositories.OperationStatus
             _operationStatus.Body = message;
             return _operationStatus;
         }
-
-        public static OperationStatusResponse<T> CreateCustomStatus<T>(string message, StatusName statusName, T? body = default)
+        public static OperationStatusResponse<object> CreateCustomStatus(string message, StatusName statusName, object body = null)
         {
-            var _operationStatus = new OperationStatusResponse<T>();
+            var _operationStatus = new OperationStatusResponse<object>();
             _operationStatus.OperationId = new Random().Next(0, 1000);
             _operationStatus.Status = statusName;
             _operationStatus.Title = message;

@@ -52,6 +52,7 @@ namespace UsersRestApi.Services.ProductService
             var products = _mapper.Map<List<ProductEntity>, List<Product>>(productsEntities);
             return products;
         }
+
         public async Task<OperationStatusResponseBase> CreateProduct(ProductPostDto productDto)
         {
             try

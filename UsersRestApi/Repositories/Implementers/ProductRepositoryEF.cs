@@ -68,13 +68,13 @@ namespace UsersRestApi.Repositories
 
                 _db.Products.Remove(product);
                 await _db.SaveChangesAsync();
-                return OperationStatusResonceBuilder.CreateStatusRemoving();
+                return OperationStatusResonceBuilder.CreateStatusRemoving(entity);
             }
             catch (Exception ex)
             {
                 string ERROR_MESSAGE = $"Failed to create entity. Reason: [{ex.Message}]. Time: " + DateTime.Now;
                 _logger.LogError(ERROR_MESSAGE);
-                return OperationStatusResonceBuilder.CreateCustomStatus(ERROR_MESSAGE, StatusName.Error);
+                return OperationStatusResonceBuilder.CreateStatusError(message: ERROR_MESSAGE);
             }
         }
         public async Task<List<ProductEntity>?> GetAll()
@@ -146,13 +146,13 @@ namespace UsersRestApi.Repositories
 
                 await _argumentChanger.SaveChangesAsync(_db);
                 _logger.LogInformation($"Entity successfully updated. Identifier: [{productFromDb.ProductId}]");
-                return OperationStatusResonceBuilder.CreateStatusUpdating();
+                return OperationStatusResonceBuilder.CreateStatusUpdating(entity);
             }
             catch (Exception ex)
             {
                 string ERROR_MESSAGE = $"Failed to update entity. Message: [{ex.Message}]. Reason: [detailed error description]. Time: " + DateTime.Now;
                 _logger.LogError(ERROR_MESSAGE);
-                return OperationStatusResonceBuilder.CreateCustomStatus(ERROR_MESSAGE, StatusName.Error);
+                return OperationStatusResonceBuilder.CreateStatusError(message: ERROR_MESSAGE);
             }
         }       
     }

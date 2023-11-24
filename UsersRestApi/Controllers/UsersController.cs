@@ -17,21 +17,18 @@ namespace UsersRestApi.Controllers
 
         [HttpPost("/sign-in")]
 
-        public async Task<ActionResult<OperationStatusResponse>> SignIn([FromBody] UserPostDto user)
+        public async Task<ActionResult<OperationStatusResponseBase>> SignIn([FromBody] UserPostDto user)
         {
             var result = await _usersService.LoginUser(user, HttpContext);
             return Json(new
             {
                 Body = result,
-                Code = result.Status == StatusName.Error
-                    || result.Status == StatusName.Warning ?
-                    400 : 200
+                Code = 401
             });
         }
 
-
         [HttpPost("/sign-up")]
-        public ActionResult<OperationStatusResponse> SignUp(UserPostDto userForRegistering)
+        public ActionResult<OperationStatusResponseBase> SignUp(UserPostDto userForRegistering)
         {
             var result = _usersService.RegisterUser(userForRegistering);
             HttpContext.Response.Cookies.Append("NowIsVerifyMail", "true");

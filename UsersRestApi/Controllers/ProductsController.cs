@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Collections.Generic;
 using UsersRestApi.DTO;
 using UsersRestApi.Models;
 using UsersRestApi.Repositories.OperationStatus;
@@ -9,7 +8,7 @@ using UsersRestApi.Services.ProductService;
 namespace UsersRestApi.Controllers
 {
     [ApiController]
-    // [Authorize]
+    [Authorize]
     public class ProductsController : Controller
     {
         private ProductsService _productsService;
@@ -54,21 +53,21 @@ namespace UsersRestApi.Controllers
         }
 
         [HttpPost("api/v1/products")]
-        public async Task<ActionResult<OperationStatusResponse>> PostProduct([FromBody] ProductPostDto product)
+        public async Task<ActionResult<OperationStatusResponseBase>> PostProduct([FromBody] ProductPostDto product)
         {
             var result = await _productsService.CreateProduct(product);
             return Json(result);
         }
 
         [HttpDelete("api/v1/products")]
-        public async Task<ActionResult<OperationStatusResponse>> DeleteProduct([FromBody] ProductDelDto product)
+        public async Task<ActionResult<OperationStatusResponseBase>> DeleteProduct([FromBody] ProductDelDto product)
         {
             var result = await _productsService.RemoveProduct(product);
             return Json(result);
         }
         
         [HttpPut("api/v1/products")]
-        public async Task<ActionResult<OperationStatusResponse>> PutProduct([FromBody] ProductPutDto product)
+        public async Task<ActionResult<OperationStatusResponseBase>> PutProduct([FromBody] ProductPutDto product)
         {
             var result = await _productsService.UpdateProduct(product);
             return Json(result);
