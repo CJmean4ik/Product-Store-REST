@@ -21,8 +21,14 @@ namespace UsersRestApi.Services.ProductService
         }
 
         public async Task<List<Product>> GetProducts(int id = 0, int limit = 0)
-        {         
-            if (id != 0) return await getProductById(id);
+        {
+            List<Product> responceList = new List<Product>();
+
+            if (id != 0)
+            {
+               responceList.Add(await getProductById(id));
+               return responceList;
+            }
 
             if (limit != 0) return await getLimitProducts(limit);
 
@@ -31,24 +37,24 @@ namespace UsersRestApi.Services.ProductService
         private async Task<List<Product>> getProducts()
         {
             var productsEntities = await _repository.GetAll();
-           
+
             var products = _mapper.Map<List<ProductEntity>, List<Product>>(productsEntities);
 
-            return products;       
+            return products;
         }
-        private async Task<List<Product>> getProductById(int id)
+        private async Task<Product> getProductById(int id)
         {
             var productEntities = await _repository.GetById(id);
 
             if (productEntities is null) return null;
-                      
-            var products = _mapper.Map<List<ProductEntity>, List<Product>>(productEntities);
+
+            var products = _mapper.Map<ProductEntity, Product>(productEntities);
             return products;
         }
         private async Task<List<Product>> getLimitProducts(int limit)
         {
             var productsEntities = await _repository.GetLimint(limit);
-         
+
             var products = _mapper.Map<List<ProductEntity>, List<Product>>(productsEntities);
             return products;
         }
@@ -66,8 +72,8 @@ namespace UsersRestApi.Services.ProductService
                 _logger.LogError(ex.Message);
 
                 return OperationStatusResonceBuilder
-                    .CreateCustomStatus("[ProductDto] entity mapping error in [Product] Most likely, the structure of the supplied entity did not match the structure of [ProductDto]",
-                    StatusName.Error);         
+                    .CreateCustomStatus<object>("[ProductDto] entity mapping error in [Product] Most likely, the structure of the supplied entity did not match the structure of [ProductDto]",
+                    StatusName.Error, null);
             }
         }
         public async Task<OperationStatusResponseBase> RemoveProduct(ProductDelDto productDto)
@@ -82,8 +88,8 @@ namespace UsersRestApi.Services.ProductService
             {
                 _logger.LogError(ex.Message);
                 return OperationStatusResonceBuilder
-                    .CreateCustomStatus("[ProductDto] entity mapping error in [Product] Most likely, the structure of the supplied entity did not match the structure of [ProductDto]",
-                    StatusName.Error);
+                    .CreateCustomStatus<object>("[ProductDto] entity mapping error in [Product] Most likely, the structure of the supplied entity did not match the structure of [ProductDto]",
+                    StatusName.Error, null);
             }
         }
         public async Task<OperationStatusResponseBase> UpdateProduct(ProductPutDto productDto)
@@ -98,8 +104,8 @@ namespace UsersRestApi.Services.ProductService
             {
                 _logger.LogError(ex.Message);
                 return OperationStatusResonceBuilder
-                    .CreateCustomStatus("[ProductDto] entity mapping error in [Product] Most likely, the structure of the supplied entity did not match the structure of [ProductDto]",
-                    StatusName.Error);
+                    .CreateCustomStatus<object>("[ProductDto] entity mapping error in [Product] Most likely, the structure of the supplied entity did not match the structure of [ProductDto]",
+                    StatusName.Error, null);
             }
         }
     }

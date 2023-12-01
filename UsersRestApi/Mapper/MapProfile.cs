@@ -15,9 +15,7 @@ namespace UsersRestApi.Mapper
                {
                    CategoryName = src.SubCategory.Category.Name,
                    SubCategoryName = src.SubCategory.Name
-               }));
-
-            CreateMap<ProductEntity, Product>()
+               }))          
                .ForMember(dest => dest.Image, opt => opt.MapFrom(src => new Image
                {
                    PreviewImage = src.PreviewImageName,

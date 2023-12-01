@@ -29,7 +29,8 @@ namespace UsersRestApi.Repositories
                 {
                     string WARRNING_MESSAGE = $"Cannot bind SubCategory and Category because category [{CATEGORY_NAME}] Not being in the Database Time: " + DateTime.Now;
                     _logger.LogInformation(WARRNING_MESSAGE);
-                    return OperationStatusResonceBuilder.CreateCustomStatus(WARRNING_MESSAGE,StatusName.Warning);
+                    return OperationStatusResonceBuilder
+                        .CreateCustomStatus<object>(WARRNING_MESSAGE, StatusName.Warning, null);
                 }
 
                 await _db.Products.AddAsync(entity!);
@@ -42,15 +43,15 @@ namespace UsersRestApi.Repositories
             {
                 string ERROR_MESSAGE = $"Failed to create entity. Reason: [{ex.Message}]. Time: " + DateTime.Now;
                 _logger.LogWarning(ERROR_MESSAGE);
-                return OperationStatusResonceBuilder.CreateCustomStatus(ERROR_MESSAGE, StatusName.Error);
+                return OperationStatusResonceBuilder.CreateCustomStatus<object>(ERROR_MESSAGE, StatusName.Error, null);
             }
         }
         private async Task bindCategoryForProduct(ProductEntity entity)
-        {          
-                var category = await _db.SubCategories
-                    .Include(ic => ic.Category)
-                    .Where(w => w.Name == entity.SubCategory.Name)
-                    .FirstOrDefaultAsync();
+        {
+            var category = await _db.SubCategories
+                .Include(ic => ic.Category)
+                .Where(w => w.Name == entity.SubCategory.Name)
+                .FirstOrDefaultAsync();
 
             entity.SubCategory = category;
         }
@@ -63,7 +64,8 @@ namespace UsersRestApi.Repositories
                 if (product is null)
                 {
                     _logger.LogWarning($"Product at id: [{entity.ProductId}] not found");
-                    return OperationStatusResonceBuilder.CreateCustomStatus($"Product at id: [{entity.ProductId}] not found",StatusName.Warning);
+                    return OperationStatusResonceBuilder
+                        .CreateCustomStatus<object>($"Product at id: [{entity.ProductId}] not found", StatusName.Warning, null);
                 }
 
                 _db.Products.Remove(product);
@@ -81,7 +83,11 @@ namespace UsersRestApi.Repositories
         {
             try
             {
-                var products = await _db.Products.Include(i => i.SubCategory).Include(i => i.SubCategory.Category).ToListAsync();
+                var products = await _db.Products
+                    .Include(i => i.SubCategory)
+                    .Include(i => i.SubCategory.Category)
+                    .Include(i => i.Images)
+                    .ToListAsync();
 
                 _logger.LogInformation($"Entities successfully retrieved. Count: [{products.Count}]. Time: " + DateTime.Now);
                 return products;
@@ -92,17 +98,18 @@ namespace UsersRestApi.Repositories
                 return null;
             }
         }
-        public async Task<List<ProductEntity>> GetById(int id)
+        public async Task<ProductEntity> GetById(int id)
         {
             try
             {
                 var products = await _db.Products
                     .Include(i => i.SubCategory)
                     .Include(i => i.SubCategory.Category)
+                    .Include(i => i.Images)
                     .Where(w => w.ProductId == id)
-                    .ToListAsync();
+                    .FirstOrDefaultAsync();
 
-                _logger.LogInformation($"Entity successfully retrieved. Id: [{products?[0].ProductId}]. Time: " + DateTime.Now);
+                _logger.LogInformation($"Entity successfully retrieved. Id: [{products.ProductId}]. Time: " + DateTime.Now);
                 return products;
             }
             catch (Exception ex)
@@ -118,6 +125,7 @@ namespace UsersRestApi.Repositories
                 var products = await _db.Products
                     .Include(i => i.SubCategory)
                     .Include(i => i.SubCategory.Category)
+                    .Include(i => i.Images)
                     .Take(limit)
                     .ToListAsync();
 
@@ -138,11 +146,12 @@ namespace UsersRestApi.Repositories
                 if (productFromDb is null)
                 {
                     _logger.LogInformation($"Entity has null");
-                    return OperationStatusResonceBuilder.CreateCustomStatus($"Entity for updating by id: [{entity.ProductId}] not found", StatusName.Warning);
+                    return OperationStatusResonceBuilder
+                        .CreateCustomStatus<object>($"Entity for updating by id: [{entity.ProductId}] not found", StatusName.Warning, null);
                 }
 
-                _argumentChanger.SearchModifieArguments(productFromDb,entity);
-                _argumentChanger.ChangeFoundModifieArguments(productFromDb,_db);
+                _argumentChanger.SearchModifieArguments(productFromDb, entity);
+                _argumentChanger.ChangeFoundModifieArguments(productFromDb, _db);
 
                 await _argumentChanger.SaveChangesAsync(_db);
                 _logger.LogInformation($"Entity successfully updated. Identifier: [{productFromDb.ProductId}]");
@@ -154,7 +163,7 @@ namespace UsersRestApi.Repositories
                 _logger.LogError(ERROR_MESSAGE);
                 return OperationStatusResonceBuilder.CreateStatusError(message: ERROR_MESSAGE);
             }
-        }       
+        }
     }
 
 }

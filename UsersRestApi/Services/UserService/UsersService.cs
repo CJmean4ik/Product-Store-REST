@@ -96,7 +96,8 @@ namespace UsersRestApi.Services.UserService
         public async Task<OperationStatusResponseBase> RegisterUser()
         {
             if (!_memoryCache.TryGetValue("CurrentUser", out UserPostDto? userDto))
-                return OperationStatusResonceBuilder.CreateCustomStatus("User data was unexpectedly lost", StatusName.Warning);
+                return OperationStatusResonceBuilder
+                    .CreateCustomStatus<object>("User data was unexpectedly lost", StatusName.Warning,null);
 
             var userEntity = _mapper.Map<UserPostDto, UserEntity>(userDto);
 

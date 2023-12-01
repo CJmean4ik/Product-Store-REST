@@ -6,7 +6,7 @@ namespace UsersRestApi.Repositories
 {
     public interface IProductRepository : IRepository<ProductEntity, OperationStatusResponseBase>
     {
-        Task<List<ProductEntity>?> GetById(int id);
+        Task<ProductEntity?> GetById(int id);
         Task<List<ProductEntity>?> GetLimint(int limit);
     }
 }
