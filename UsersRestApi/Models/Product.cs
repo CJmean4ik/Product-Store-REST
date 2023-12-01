@@ -9,5 +9,6 @@
         public int CountOnStorage { get; set; }
         public DateTime DateCreated { get; set; }
         public Category Category { get; set; }
+        public Image Image { get; set; }
     }
 }

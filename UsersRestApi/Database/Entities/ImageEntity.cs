@@ -3,9 +3,8 @@
     public class ImageEntity
     {
         public int ImageId { get; set; }
-        public byte[] Image { get; set; }
+        public string ImageName { get; set; }
 
-        public int ProductId { get; set; }
         public ProductEntity ProductEntity { get; set; }
     }
 }

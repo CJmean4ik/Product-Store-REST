@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using UsersRestApi.Database.EF;
 
@@ -11,9 +12,11 @@ using UsersRestApi.Database.EF;
 namespace UsersRestApi.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    partial class DatabaseContextModelSnapshot : ModelSnapshot
+    [Migration("20231201060932_CreatNewColumbInImage")]
+    partial class CreatNewColumbInImage
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -47,18 +50,29 @@ namespace UsersRestApi.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ImageId"));
 
-                    b.Property<string>("ImageName")
+                    b.Property<string>("FileName")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<byte[]>("Image")
+                        .IsRequired()
+                        .HasColumnType("varbinary(max)");
+
                     b.Property<int>("ProductEntityProductId")
                         .HasColumnType("int");
+
+                    b.Property<int>("ProductId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("ImageId");
 
                     b.HasIndex("ProductEntityProductId");
 
-                    b.ToTable("ImageEntities");
+                    b.ToTable("Images");
                 });
 
             modelBuilder.Entity("UsersRestApi.Database.Entities.ProductEntity", b =>
@@ -83,9 +97,9 @@ namespace UsersRestApi.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("PreviewImageName")
+                    b.Property<byte[]>("PreviewImage")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("varbinary(max)");
 
                     b.Property<decimal>("Price")
                         .HasColumnType("decimal(18,2)");
@@ -154,7 +168,7 @@ namespace UsersRestApi.Migrations
             modelBuilder.Entity("UsersRestApi.Database.Entities.ImageEntity", b =>
                 {
                     b.HasOne("UsersRestApi.Database.Entities.ProductEntity", "ProductEntity")
-                        .WithMany("Images")
+                        .WithMany()
                         .HasForeignKey("ProductEntityProductId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -187,11 +201,6 @@ namespace UsersRestApi.Migrations
             modelBuilder.Entity("UsersRestApi.Database.Entities.CategoryEntity", b =>
                 {
                     b.Navigation("SubCategories");
-                });
-
-            modelBuilder.Entity("UsersRestApi.Database.Entities.ProductEntity", b =>
-                {
-                    b.Navigation("Images");
                 });
 #pragma warning restore 612, 618
         }

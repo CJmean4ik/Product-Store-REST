@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using UsersRestApi.Database.EF;
 using UsersRestApi.Database.EF.UpdateComponents;
 using UsersRestApi.Database.Entities;
-using UsersRestApi.Entities;
+using UsersRestApi.Models;
 using UsersRestApi.Repositories;
 using UsersRestApi.Repositories.Interfaces;
 using UsersRestApi.Repositories.OperationStatus;
@@ -34,6 +34,8 @@ namespace UsersRestApi
             builder.Services.AddAuthorization();
 
             builder.Services.AddDbContext<DatabaseContext>(optionsAction => optionsAction.UseSqlServer(CONNECTION_STRING), ServiceLifetime.Singleton);
+
+            builder.Services.Configure<ImageConfig>(builder.Configuration.GetSection("PathToImages"));
 
             builder.Services.AddScoped<IProductRepository, ProductRepositoryEF>();
             builder.Services.AddScoped<IProductModifierArgumentChanger, ProductModifierArgumentChanger>();

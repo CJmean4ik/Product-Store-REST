@@ -9,8 +9,7 @@ namespace UsersRestApi.Database.EF
         public DbSet<CategoryEntity> Categories { get; set; }
         public DbSet<SubCategoryEntity> SubCategories { get; set; }
         public DbSet<UserEntity> Users { get; set; }
-        public DbSet<ImageEntity> Images { get; set; }
-
+        public DbSet<ImageEntity> ImageEntities { get; set; }
         public DatabaseContext() { }
 
         public DatabaseContext(DbContextOptions options) : base(options)
