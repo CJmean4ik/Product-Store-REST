@@ -8,6 +8,7 @@ using UsersRestApi.Repositories;
 using UsersRestApi.Repositories.Interfaces;
 using UsersRestApi.Repositories.OperationStatus;
 using UsersRestApi.Services.EmaiAuthService;
+using UsersRestApi.Services.ImageParserService;
 using UsersRestApi.Services.Password;
 using UsersRestApi.Services.PasswordHasherService;
 using UsersRestApi.Services.ProductService;
@@ -42,7 +43,7 @@ namespace UsersRestApi
             builder.Services.AddScoped<IUserRepository<UserEntity, OperationStatusResponseBase>, UserRepositoryEF>();
             builder.Services.AddScoped<IPasswordHasher<UserEntity>, PasswordHasher>();
             builder.Services.AddScoped<IEmailVerifySender, EmailVerifySender>();
-
+            builder.Services.AddScoped<IImageParser<FileStream,OperationStatusResponseBase>, ImageParser>();
             builder.Services.AddScoped<ProductsService>();
             builder.Services.AddScoped<UsersService>();
 
