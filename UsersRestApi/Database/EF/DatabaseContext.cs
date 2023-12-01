@@ -9,7 +9,7 @@ namespace UsersRestApi.Database.EF
         public DbSet<CategoryEntity> Categories { get; set; }
         public DbSet<SubCategoryEntity> SubCategories { get; set; }
         public DbSet<UserEntity> Users { get; set; }
-
+        public DbSet<ImageEntity> Images { get; set; }
 
         public DatabaseContext() { }
 
@@ -19,6 +19,7 @@ namespace UsersRestApi.Database.EF
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+
             modelBuilder.Entity<ProductEntity>().HasKey(k => k.ProductId);
             modelBuilder.Entity<ProductEntity>().Property(p => p.ProductId).ValueGeneratedOnAdd();
 
@@ -30,6 +31,9 @@ namespace UsersRestApi.Database.EF
 
             modelBuilder.Entity<UserEntity>().HasKey(k => k.Id);
             modelBuilder.Entity<UserEntity>().Property(p => p.Id).ValueGeneratedOnAdd();
+
+            modelBuilder.Entity<ImageEntity>().HasKey(k => k.ImageId);
+            modelBuilder.Entity<ImageEntity>().Property(p => p.ImageId).ValueGeneratedOnAdd();
         }
     }
 }

@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using UsersRestApi.Database.EF;
 
@@ -11,9 +12,11 @@ using UsersRestApi.Database.EF;
 namespace UsersRestApi.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    partial class DatabaseContextModelSnapshot : ModelSnapshot
+    [Migration("20231201060140_CreatePreviewImageColumn")]
+    partial class CreatePreviewImageColumn
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -37,31 +40,6 @@ namespace UsersRestApi.Migrations
                     b.HasKey("CategoryId");
 
                     b.ToTable("Categories");
-                });
-
-            modelBuilder.Entity("UsersRestApi.Database.Entities.ImageEntity", b =>
-                {
-                    b.Property<int>("ImageId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ImageId"));
-
-                    b.Property<byte[]>("Image")
-                        .IsRequired()
-                        .HasColumnType("varbinary(max)");
-
-                    b.Property<int>("ProductEntityProductId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("ProductId")
-                        .HasColumnType("int");
-
-                    b.HasKey("ImageId");
-
-                    b.HasIndex("ProductEntityProductId");
-
-                    b.ToTable("Images");
                 });
 
             modelBuilder.Entity("UsersRestApi.Database.Entities.ProductEntity", b =>
@@ -152,17 +130,6 @@ namespace UsersRestApi.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Users");
-                });
-
-            modelBuilder.Entity("UsersRestApi.Database.Entities.ImageEntity", b =>
-                {
-                    b.HasOne("UsersRestApi.Database.Entities.ProductEntity", "ProductEntity")
-                        .WithMany()
-                        .HasForeignKey("ProductEntityProductId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("ProductEntity");
                 });
 
             modelBuilder.Entity("UsersRestApi.Database.Entities.ProductEntity", b =>

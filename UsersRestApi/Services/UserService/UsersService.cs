@@ -40,6 +40,8 @@ namespace UsersRestApi.Services.UserService
             {
                 var userEntity = await _repository.GetByName(userForLogin.Username);
 
+                if (userEntity is null) return OperationStatusResonceBuilder.CreateStatusWrongUsername();
+
                 var user = _mapper.Map<UserEntity, User>(userEntity);
 
                 if (!_passwordHasher.Decryption(userForLogin.EnteredPassword, user.Salt, user.HashPassword))
@@ -64,13 +66,21 @@ namespace UsersRestApi.Services.UserService
         }
         public OperationStatusResponseBase SendMailVerifyCode(UserPostDto user)
         {
-            _emailSender.GenerateCode();
-            _emailSender.SendCode(user.Email);
+            try
+            {
+                _emailSender.GenerateCode();
+                _emailSender.SendCode(user.Email);
 
-            _memoryCache.Set("CurrentUser", user);
-            _memoryCache.Set("CurrentCode", _emailSender.Code);
+                _memoryCache.Set("CurrentUser", user);
+                _memoryCache.Set("CurrentCode", _emailSender.Code);
 
-            return OperationStatusResonceBuilder.CreateStatusSendedMailCode();
+                return OperationStatusResonceBuilder.CreateStatusSendedMailCode();
+            }
+            catch (Exception ex)
+            {
+
+                return OperationStatusResonceBuilder.CreateStatusError(ex);
+            }
         }
         public bool IsVerifyMail(string code)
         {

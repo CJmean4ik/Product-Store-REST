@@ -20,15 +20,10 @@ namespace UsersRestApi.Controllers
         public async Task<ActionResult<OperationStatusResponseBase>> SignIn([FromBody] UserPostDto user)
         {
             var result = await _usersService.LoginUser(user, HttpContext);
-            return Json(new
-            {
-                Body = result,
-                Code = 401
-            });
+            return Json(result);
         }
-
         [HttpPost("/sign-up")]
-        public ActionResult<OperationStatusResponseBase> SignUp(UserPostDto userForRegistering)
+        public ActionResult<OperationStatusResponseBase> SignUp([FromBody]UserPostDto userForRegistering)
         {
             var result = _usersService.SendMailVerifyCode(userForRegistering);
             HttpContext.Response.Cookies.Append("NowIsVerifyMail", "true");
@@ -44,7 +39,6 @@ namespace UsersRestApi.Controllers
 
             if (!_usersService.IsVerifyMail(code))
             {
-                HttpContext.Response.Cookies.Delete("NowIsVerifyMail");
                 return Json("Wrong code. Enter again");
             }
 
