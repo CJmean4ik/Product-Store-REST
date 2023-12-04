@@ -1,70 +1,54 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
-using UsersRestApi.Database.Entities;
-using UsersRestApi.Models;
-using UsersRestApi.Repositories;
+﻿using Microsoft.AspNetCore.Mvc;
 using UsersRestApi.Repositories.OperationStatus;
-using UsersRestApi.Services.ImageParserService;
+using UsersRestApi.Services.ImageService;
 
 namespace UsersRestApi.Controllers
 {
     public class ProductImageControler : Controller
     {
-        private IImageParser<FileStream, OperationStatusResponseBase> _imageParser;
-        private ImageConfig _imageConfig;
-        private IProductRepository _repository;
+        private ImagesService _imagesService;
 
-        public ProductImageControler(IImageParser<FileStream, OperationStatusResponseBase> imageParser,
-                                    IOptions<ImageConfig> imageConfig,
-                                    IProductRepository repository)
+        public ProductImageControler(ImagesService imagesService)
         {
-            _imageParser = imageParser;
-            _imageConfig = imageConfig.Value;
-            _repository = repository;
+            _imagesService = imagesService;
         }
 
-        [HttpGet("api/v1/products/images/preview")]
-        public async Task<ActionResult<OperationStatusResponseBase>> GetImage()
+        [HttpGet("api/v1/products/images/preview/download")]
+        public async Task<ActionResult<OperationStatusResponseBase>> GetImageAnDownload([FromQuery] string? Id)
         {
-            string? Id = HttpContext.Request.Query["_product-id"];
-            string path;
-            string productName;
-            string previewName;
-            ProductEntity? product;
-            OperationStatusResponseBase result;
+            var result = await ProccesImage(Id);
+            var responce = result.actionResult;
 
+
+            if (responce.Value != null)
+            {
+                if (responce.Value.Status == StatusName.Warning || responce.Value.Status == StatusName.Error)
+                    return responce.Value;
+            }
+
+            HttpContext.Response.Headers.Append("Content-Disposition", $"attachment; filename={result.fileName}");
+            return responce;
+        }
+       
+        private async Task<(ActionResult<OperationStatusResponseBase> actionResult, string fileName)> ProccesImage([FromQuery] string? Id)
+        {
             if (Id is null)
-                return OperationStatusResonceBuilder
-                    .CreateStatusWarning("The query string was not entered correctly");
+                return (OperationStatusResonceBuilder
+                        .CreateStatusWarning("The query string was not entered correctly"), "");
 
             if (!int.TryParse(Id, out int productId))
-                return OperationStatusResonceBuilder
-                    .CreateStatusWarning("Invalid id format");
+                return (OperationStatusResonceBuilder
+                    .CreateStatusWarning("Invalid id format"), "");
 
+            var result = await _imagesService.GetImage(productId);
+            var responce = result.responce;
 
-            product = await _repository.GetById(productId);
+            if (responce.Status == StatusName.Warning || responce.Status == StatusName.Error)
+                return (responce, "");
 
-            if (product is null)
-                return OperationStatusResonceBuilder
-                    .CreateStatusWarning($"The user could not be found under the id [{productId}]");
+            var operationResult = (OperationStatusResponse<byte[]>)responce;
 
-            productName = product.Name;
-            previewName = product.PreviewImageName;
-
-            path = _imageConfig.ProductPreviewPath
-                               .Replace("PRODUCT_NAME",productName)
-                               .Replace("FILE_NAME",previewName);
-
-            result = await _imageParser.GetImageAsync(path);
-
-            if (result.Status == StatusName.Warning || result.Status == StatusName.Error)
-                return result;
-
-            var operationResult = (OperationStatusResponse<byte[]>)result;
-
-            return File(operationResult.Body!,"application/octet-stream",fileDownloadName: previewName);
-            
+            return (File(operationResult.Body!, "image/jpeg", fileDownloadName: result.imageName), result.imageName);
         }
     }
 }

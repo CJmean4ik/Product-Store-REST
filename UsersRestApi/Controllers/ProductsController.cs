@@ -53,7 +53,7 @@ namespace UsersRestApi.Controllers
         }
 
         [HttpPost("api/v1/products")]
-        public async Task<ActionResult<OperationStatusResponseBase>> PostProduct([FromBody] ProductPostDto product)
+        public async Task<ActionResult<OperationStatusResponseBase>> PostProduct([FromForm] ProductPostDto product)
         {
             var result = await _productsService.CreateProduct(product);
             return Json(result);

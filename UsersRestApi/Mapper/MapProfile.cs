@@ -24,7 +24,9 @@ namespace UsersRestApi.Mapper
 
 
             CreateMap<ProductPostDto, ProductEntity>()
-               .ForMember(dest => dest.SubCategory, opt => opt.MapFrom(src => new SubCategoryEntity { Name = src.SubCategory }));
+               .ForMember(dest => dest.SubCategory, opt => opt.MapFrom(src => new SubCategoryEntity { Name = src.SubCategory }))
+               .ForMember(dest => dest.PreviewImageName, opt => opt.Ignore())
+               .ForMember(dest => dest.Images, opt => opt.Ignore());
 
             CreateMap<ProductPutDto, ProductEntity>()
                .ForMember(dest => dest.ProductId, opt => opt.MapFrom(src => src.TransportId))
