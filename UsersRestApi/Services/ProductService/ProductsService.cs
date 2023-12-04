@@ -65,6 +65,9 @@ namespace UsersRestApi.Services.ProductService
             {
                 var productEntity = _mapper.Map<ProductPostDto, ProductEntity>(productDto);
                 var result = await _repository.Create(productEntity);
+
+
+
                 return result;
             }
             catch (Exception ex)

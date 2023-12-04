@@ -3,12 +3,14 @@ using Microsoft.EntityFrameworkCore;
 using UsersRestApi.Database.EF;
 using UsersRestApi.Database.EF.UpdateComponents;
 using UsersRestApi.Database.Entities;
+using UsersRestApi.DTO;
 using UsersRestApi.Models;
 using UsersRestApi.Repositories;
+using UsersRestApi.Repositories.Implementers;
 using UsersRestApi.Repositories.Interfaces;
 using UsersRestApi.Repositories.OperationStatus;
 using UsersRestApi.Services.EmaiAuthService;
-using UsersRestApi.Services.ImageParserService;
+using UsersRestApi.Services.ImageService;
 using UsersRestApi.Services.Password;
 using UsersRestApi.Services.PasswordHasherService;
 using UsersRestApi.Services.ProductService;
@@ -43,9 +45,10 @@ namespace UsersRestApi
             builder.Services.AddScoped<IUserRepository<UserEntity, OperationStatusResponseBase>, UserRepositoryEF>();
             builder.Services.AddScoped<IPasswordHasher<UserEntity>, PasswordHasher>();
             builder.Services.AddScoped<IEmailVerifySender, EmailVerifySender>();
-            builder.Services.AddScoped<IImageParser<FileStream,OperationStatusResponseBase>, ImageParser>();
+            builder.Services.AddScoped<IImageReposiroty<ProductPostDto, OperationStatusResponseBase>, ImageRepository>();
             builder.Services.AddScoped<ProductsService>();
             builder.Services.AddScoped<UsersService>();
+            builder.Services.AddScoped<ImagesService>();
 
             var app = builder.Build();
 
