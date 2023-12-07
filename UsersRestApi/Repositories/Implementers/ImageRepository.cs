@@ -1,12 +1,11 @@
 ﻿using Microsoft.Extensions.Options;
-using UsersRestApi.DTO;
 using UsersRestApi.Models;
 using UsersRestApi.Repositories.Interfaces;
 using UsersRestApi.Repositories.OperationStatus;
 
 namespace UsersRestApi.Repositories.Implementers
 {
-    public class ImageRepository : IImageReposiroty<ProductPostDto, OperationStatusResponseBase>
+    public class ImageRepository : IImageReposiroty<IFormFile, OperationStatusResponseBase>
     {
         private ImageConfig _imageConfig;
 
@@ -14,13 +13,13 @@ namespace UsersRestApi.Repositories.Implementers
         {
             _imageConfig = imageConfig.Value;
         }
-        public OperationStatusResponseBase CreateImage(ProductPostDto product,string path)
+        public OperationStatusResponseBase CreateImage(IFormFile file, string path)
         {
             try
             {
                 using (FileStream fileStream = new FileStream(path: path, FileMode.CreateNew))
                 {
-                    product.PreviewImage.CopyTo(fileStream);
+                    file.CopyTo(fileStream);
                 }
                 return OperationStatusResonceBuilder.CreateStatusSuccessfully("The image has been saved");
             }
@@ -29,7 +28,19 @@ namespace UsersRestApi.Repositories.Implementers
                 return OperationStatusResonceBuilder.CreateStatusError(ex);
             }
         }
+        public OperationStatusResponseBase CreateImage(List<IFormFile> files, string productName)
+        {
+            foreach (var file in files)
+            {
+                var path = _imageConfig.ProductImagesPath
+                    .Replace("PRODUCT_NAME", productName)
+                    .Replace("FILE_NAME", file.FileName);
 
+
+                CreateImage(file, path);
+            }
+            return OperationStatusResonceBuilder.CreateStatusSuccessfully("The image has been saved");
+        }
         public async Task<OperationStatusResponseBase> GetImageAsync(string path)
         {
             try

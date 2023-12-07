@@ -1,23 +1,30 @@
 ﻿using AutoMapper;
+using System.Buffers;
 using UsersRestApi.Database.Entities;
 using UsersRestApi.DTO;
 using UsersRestApi.Models;
 using UsersRestApi.Repositories;
 using UsersRestApi.Repositories.OperationStatus;
+using UsersRestApi.Services.ImageService;
 
 namespace UsersRestApi.Services.ProductService
 {
     public class ProductsService
     {
         private IProductRepository _repository;
+        private ImagesService _imagesService;
         private IMapper _mapper;
         private ILogger<ProductsService> _logger;
 
-        public ProductsService(IProductRepository repository, IMapper mapper, ILogger<ProductsService> logger)
+        public ProductsService(IProductRepository repository,
+                               IMapper mapper,
+                               ILogger<ProductsService> logger,
+                               ImagesService imagesService)
         {
             _repository = repository;
             _mapper = mapper;
             _logger = logger;
+            _imagesService = imagesService;
         }
 
         public async Task<List<Product>> GetProducts(int id = 0, int limit = 0)
@@ -26,8 +33,8 @@ namespace UsersRestApi.Services.ProductService
 
             if (id != 0)
             {
-               responceList.Add(await getProductById(id));
-               return responceList;
+                responceList.Add(await getProductById(id));
+                return responceList;
             }
 
             if (limit != 0) return await getLimitProducts(limit);
@@ -59,24 +66,42 @@ namespace UsersRestApi.Services.ProductService
             return products;
         }
 
-        public async Task<OperationStatusResponseBase> CreateProduct(ProductPostDto productDto)
+        public async Task<List<OperationStatusResponseBase>> CreateProduct(ProductPostDto productDto)
         {
+            var operationStatuses = new List<OperationStatusResponseBase>();
             try
-            {
+            {             
                 var productEntity = _mapper.Map<ProductPostDto, ProductEntity>(productDto);
                 var result = await _repository.Create(productEntity);
 
+                operationStatuses.Add(result);
+
+                if (result.Status == StatusName.Error || result.Status == StatusName.Warning)
+                    return operationStatuses;
 
 
-                return result;
+                if (!_imagesService.CreateMainDirectory(productDto))
+                {
+                    operationStatuses.Add(OperationStatusResonceBuilder
+                    .CreateStatusWarning("A repository with the same name already exists for this product"));
+                    return operationStatuses;
+                }
+                    
+
+                result = _imagesService.CreatePreviewImage(productDto);
+                operationStatuses.Add(result);
+                result = _imagesService.CreateImages(productDto);
+                operationStatuses.Add(result);
+
+                return operationStatuses;
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex.Message);
-
-                return OperationStatusResonceBuilder
+                operationStatuses.Add(OperationStatusResonceBuilder
                     .CreateCustomStatus<object>("[ProductDto] entity mapping error in [Product] Most likely, the structure of the supplied entity did not match the structure of [ProductDto]",
-                    StatusName.Error, null);
+                    StatusName.Error, null));
+                return operationStatuses;
             }
         }
         public async Task<OperationStatusResponseBase> RemoveProduct(ProductDelDto productDto)
