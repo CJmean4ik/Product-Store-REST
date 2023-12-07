@@ -10,11 +10,11 @@ namespace UsersRestApi.Services.ImageService
 {
     public class ImagesService
     {
-        private IImageReposiroty<ProductPostDto, OperationStatusResponseBase> _imageReposiroty;
+        private IImageReposiroty<IFormFile, OperationStatusResponseBase> _imageReposiroty;
         private ImageConfig _imageConfig;
         private IProductRepository _repository;
 
-        public ImagesService(IImageReposiroty<ProductPostDto, OperationStatusResponseBase> imageReposiroty,
+        public ImagesService(IImageReposiroty<IFormFile, OperationStatusResponseBase> imageReposiroty,
                             IOptions<ImageConfig> imageConfig,
                             IProductRepository repository)
         {
@@ -52,9 +52,6 @@ namespace UsersRestApi.Services.ImageService
 
         public OperationStatusResponseBase CreatePreviewImage(ProductPostDto productPost)
         {
-            if (!_imageConfig.CreateProductDirectory(productPost.Name))
-                return OperationStatusResonceBuilder
-                    .CreateStatusWarning("A repository with the same name already exists for this product");
             _imageConfig.CreatePreviewDirectory(productPost.Name);
 
             var fileName = Path.GetFileName(productPost.PreviewImage.FileName);
@@ -62,12 +59,23 @@ namespace UsersRestApi.Services.ImageService
                 .Replace("PRODUCT_NAME", productPost.Name)
                 .Replace("FILE_NAME", fileName);
 
-            var result = _imageReposiroty.CreateImage(productPost, path);
+            var result = _imageReposiroty.CreateImage(productPost.PreviewImage, path);
             return result;
         }
-        public async Task<OperationStatusResponseBase> CreateImages(ProductPostDto productPost)
-        {
+        public OperationStatusResponseBase CreateImages(ProductPostDto productPost)
+        {     
             _imageConfig.CreateImageDirectory(productPost.Name);
+
+            var result = _imageReposiroty.CreateImage(productPost.Images, productPost.Name);
+            return result;
+        }
+
+        public bool CreateMainDirectory(ProductPostDto productPost)
+        {
+            if (!_imageConfig.CreateProductDirectory(productPost.Name))
+                return false;
+
+            return true;
         }
     }
 }

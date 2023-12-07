@@ -8,7 +8,7 @@ using UsersRestApi.Services.ProductService;
 namespace UsersRestApi.Controllers
 {
     [ApiController]
-    [Authorize]
+    //[Authorize]
     public class ProductsController : Controller
     {
         private ProductsService _productsService;
