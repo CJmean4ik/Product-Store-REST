@@ -1,8 +1,8 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using UsersRestApi.DTO;
 using UsersRestApi.Models;
 using UsersRestApi.Repositories.OperationStatus;
+using UsersRestApi.Services.ImageService;
 using UsersRestApi.Services.ProductService;
 
 namespace UsersRestApi.Controllers
@@ -12,10 +12,11 @@ namespace UsersRestApi.Controllers
     public class ProductsController : Controller
     {
         private ProductsService _productsService;
-
-        public ProductsController(ProductsService productsService)
+        private ImagesService _imagesService;
+        public ProductsController(ProductsService productsService, ImagesService imagesService)
         {
             _productsService = productsService;
+            _imagesService = imagesService;
         }
 
         [HttpGet("api/v1/products")]
@@ -55,17 +56,34 @@ namespace UsersRestApi.Controllers
         [HttpPost("api/v1/products")]
         public async Task<ActionResult<OperationStatusResponseBase>> PostProduct([FromForm] ProductPostDto product)
         {
+
             var result = await _productsService.CreateProduct(product);
+
+            if (!_imagesService.CreateMainDirectory(product))
+            {
+                result.Add(OperationStatusResonceBuilder
+                .CreateStatusWarning("A repository with the same name already exists for this product"));
+                return Json(result);
+            }
+
+
+            result.Add(_imagesService.CreatePreviewImage(product));
+            result.Add(_imagesService.CreateImages(product));
+
             return Json(result);
         }
 
         [HttpDelete("api/v1/products")]
         public async Task<ActionResult<OperationStatusResponseBase>> DeleteProduct([FromBody] ProductDelDto product)
         {
-            var result = await _productsService.RemoveProduct(product);
-            return Json(result);
+            var resultProductService = await _productsService.RemoveProduct(product);
+            if (resultProductService.Status == StatusName.Error || resultProductService.Status == StatusName.Warning)
+                return resultProductService;
+            
+            var resultImageService = _imagesService.RemoveAllImages(product);
+            return Json(resultProductService, resultImageService);
         }
-        
+
         [HttpPut("api/v1/products")]
         public async Task<ActionResult<OperationStatusResponseBase>> PutProduct([FromBody] ProductPutDto product)
         {

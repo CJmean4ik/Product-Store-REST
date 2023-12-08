@@ -10,7 +10,7 @@ namespace UsersRestApi.Services.ImageService
 {
     public class ImagesService
     {
-        private IImageReposiroty<IFormFile, OperationStatusResponseBase> _imageReposiroty;
+        private IImageReposiroty<IFormFile, OperationStatusResponseBase> _imageRepository;
         private ImageConfig _imageConfig;
         private IProductRepository _repository;
 
@@ -18,7 +18,7 @@ namespace UsersRestApi.Services.ImageService
                             IOptions<ImageConfig> imageConfig,
                             IProductRepository repository)
         {
-            _imageReposiroty = imageReposiroty;
+            _imageRepository = imageReposiroty;
             _imageConfig = imageConfig.Value;
             _repository = repository;
         }
@@ -44,7 +44,7 @@ namespace UsersRestApi.Services.ImageService
                                .Replace("PRODUCT_NAME", productName)
                                .Replace("FILE_NAME", previewName);
 
-            result = await _imageReposiroty.GetImageAsync(path);
+            result = await _imageRepository.GetImageAsync(path);
 
 
             return (result, previewName);
@@ -59,14 +59,21 @@ namespace UsersRestApi.Services.ImageService
                 .Replace("PRODUCT_NAME", productPost.Name)
                 .Replace("FILE_NAME", fileName);
 
-            var result = _imageReposiroty.CreateImage(productPost.PreviewImage, path);
+            var result = _imageRepository.CreateImage(productPost.PreviewImage, path);
             return result;
         }
         public OperationStatusResponseBase CreateImages(ProductPostDto productPost)
         {     
             _imageConfig.CreateImageDirectory(productPost.Name);
 
-            var result = _imageReposiroty.CreateImage(productPost.Images, productPost.Name);
+            var result = _imageRepository.CreateImages(productPost.Images, productPost.Name);
+            return result;
+        }
+
+        public OperationStatusResponseBase RemoveAllImages(ProductDelDto productDel)
+        {
+            string path = _imageConfig.ProductPath.Replace("FOR_RAPLACE", productDel.Name);
+            var result = _imageRepository.RemoveImages(path);
             return result;
         }
 
@@ -74,7 +81,6 @@ namespace UsersRestApi.Services.ImageService
         {
             if (!_imageConfig.CreateProductDirectory(productPost.Name))
                 return false;
-
             return true;
         }
     }

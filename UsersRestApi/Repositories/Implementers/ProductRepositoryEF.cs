@@ -60,7 +60,7 @@ namespace UsersRestApi.Repositories
             try
             {
                 var product = await _db.Products.FindAsync(entity!.ProductId);
-
+                
                 if (product is null)
                 {
                     _logger.LogWarning($"Product at id: [{entity.ProductId}] not found");
@@ -68,7 +68,11 @@ namespace UsersRestApi.Repositories
                         .CreateCustomStatus<object>($"Product at id: [{entity.ProductId}] not found", StatusName.Warning, null);
                 }
 
+                var images = product.Images;
+
                 _db.Products.Remove(product);
+                _db.ImageEntities.RemoveRange(images);
+
                 await _db.SaveChangesAsync();
                 return OperationStatusResonceBuilder.CreateStatusRemoving(entity);
             }
