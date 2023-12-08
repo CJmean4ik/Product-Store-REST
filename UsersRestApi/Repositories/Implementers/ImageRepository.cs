@@ -28,7 +28,7 @@ namespace UsersRestApi.Repositories.Implementers
                 return OperationStatusResonceBuilder.CreateStatusError(ex);
             }
         }
-        public OperationStatusResponseBase CreateImage(List<IFormFile> files, string productName)
+        public OperationStatusResponseBase CreateImages(List<IFormFile> files, string productName)
         {
             foreach (var file in files)
             {
@@ -60,12 +60,16 @@ namespace UsersRestApi.Repositories.Implementers
             }
         }
 
-        public OperationStatusResponseBase RemoveImage(string path)
+        public OperationStatusResponseBase RemoveImages(string path)
         {
-            throw new NotImplementedException();
+            if (!Directory.Exists(path))           
+                return OperationStatusResonceBuilder.CreateStatusWarning("Directory not founded");
+
+            Directory.Delete(path,true);
+            return OperationStatusResonceBuilder.CreateStatusSuccessfully("Directory with images has been removed");
         }
 
-        public OperationStatusResponseBase UpdateImage(string path)
+        public OperationStatusResponseBase UpdateImages(string path)
         {
             throw new NotImplementedException();
         }

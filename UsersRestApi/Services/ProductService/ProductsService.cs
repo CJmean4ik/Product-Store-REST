@@ -12,19 +12,16 @@ namespace UsersRestApi.Services.ProductService
     public class ProductsService
     {
         private IProductRepository _repository;
-        private ImagesService _imagesService;
         private IMapper _mapper;
         private ILogger<ProductsService> _logger;
 
         public ProductsService(IProductRepository repository,
                                IMapper mapper,
-                               ILogger<ProductsService> logger,
-                               ImagesService imagesService)
+                               ILogger<ProductsService> logger)
         {
             _repository = repository;
             _mapper = mapper;
             _logger = logger;
-            _imagesService = imagesService;
         }
 
         public async Task<List<Product>> GetProducts(int id = 0, int limit = 0)
@@ -78,20 +75,6 @@ namespace UsersRestApi.Services.ProductService
 
                 if (result.Status == StatusName.Error || result.Status == StatusName.Warning)
                     return operationStatuses;
-
-
-                if (!_imagesService.CreateMainDirectory(productDto))
-                {
-                    operationStatuses.Add(OperationStatusResonceBuilder
-                    .CreateStatusWarning("A repository with the same name already exists for this product"));
-                    return operationStatuses;
-                }
-                    
-
-                result = _imagesService.CreatePreviewImage(productDto);
-                operationStatuses.Add(result);
-                result = _imagesService.CreateImages(productDto);
-                operationStatuses.Add(result);
 
                 return operationStatuses;
             }
