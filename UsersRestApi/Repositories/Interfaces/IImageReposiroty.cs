@@ -7,7 +7,7 @@ namespace UsersRestApi.Repositories.Interfaces
         Task<R> GetImageAsync(string path);
         R CreateImage(T image, string path);
         R CreateImages(List<T> image, string productName);
-        R RemoveImages(string path);
-        R UpdateImages(string path);
+        R RemoveImageFile(string path);
+        R RemoveImageDirectory(string path);
     }
 }

@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Options;
+using ProductAPI.DTO;
 using UsersRestApi.Database.Entities;
 using UsersRestApi.DTO;
 using UsersRestApi.Models;
@@ -49,34 +50,60 @@ namespace UsersRestApi.Services.ImageService
 
             return (result, previewName);
         }
-
-        public OperationStatusResponseBase CreatePreviewImage(ProductPostDto productPost)
+        public OperationStatusResponseBase CreatePreviewImage(ImagePostDto imagePost)
         {
-            _imageConfig.CreatePreviewDirectory(productPost.Name);
+            _imageConfig.CreatePreviewDirectory(imagePost.ProductName);
 
-            var fileName = Path.GetFileName(productPost.PreviewImage.FileName);
+            var fileName = Path.GetFileName(imagePost.PreviewImage.FileName);
             var path = _imageConfig.ProductPreviewPath
-                .Replace("PRODUCT_NAME", productPost.Name)
+                .Replace("PRODUCT_NAME", imagePost.ProductName)
                 .Replace("FILE_NAME", fileName);
 
-            var result = _imageRepository.CreateImage(productPost.PreviewImage, path);
+            var result = _imageRepository.CreateImage(imagePost.PreviewImage, path);
             return result;
         }
-        public OperationStatusResponseBase CreateImages(ProductPostDto productPost)
+        public OperationStatusResponseBase CreateImages(ImagePostDto imagePost)
         {     
-            _imageConfig.CreateImageDirectory(productPost.Name);
+            _imageConfig.CreateImageDirectory(imagePost.ProductName);
 
-            var result = _imageRepository.CreateImages(productPost.Images, productPost.Name);
+            var result = _imageRepository.CreateImages(imagePost.Images, imagePost.ProductName);
             return result;
         }
 
-        public OperationStatusResponseBase RemoveAllImages(ProductDelDto productDel)
+        public OperationStatusResponseBase RemovePreviewImage(ImageDelDto imageDel)
         {
-            string path = _imageConfig.ProductPath.Replace("FOR_RAPLACE", productDel.Name);
-            var result = _imageRepository.RemoveImages(path);
+            string path = _imageConfig.ProductPreviewPath
+                                      .Replace("PRODUCT_NAME", imageDel.ProductName)
+                                      .Replace("FILE_NAME",imageDel.PreviewImageName);
+            var result = _imageRepository.RemoveImageFile(path);
             return result;
         }
+        public OperationStatusResponseBase RemoveImages(ImageDelDto imageDel)
+        {
+            string[]? fileNames = imageDel.AllImagesName;
 
+            if (fileNames == null)          
+               return OperationStatusResonceBuilder.CreateStatusWarning(" There is no white image to delete");
+
+
+            OperationStatusResponseBase result = new OperationStatusResponse<string>();
+
+            for (int i = 0; i < fileNames.Length; i++)
+            {
+                string path = _imageConfig.ProductPreviewPath
+                                     .Replace("PRODUCT_NAME", imageDel.ProductName)
+                                     .Replace("FILE_NAME", imageDel.PreviewImageName);
+              result = _imageRepository.RemoveImageFile(path);
+            }
+           
+            return result;
+        }
+        public OperationStatusResponseBase RemoveAllImages(string productName)
+        {
+            string path = _imageConfig.ProductPath.Replace("FOR_RAPLACE", productName);
+            var result = _imageRepository.RemoveImageDirectory(path);
+            return result;
+        }
         public bool CreateMainDirectory(ProductPostDto productPost)
         {
             if (!_imageConfig.CreateProductDirectory(productPost.Name))
