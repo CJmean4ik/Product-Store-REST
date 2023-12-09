@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Options;
+using Microsoft.VisualBasic;
 using UsersRestApi.Models;
 using UsersRestApi.Repositories.Interfaces;
 using UsersRestApi.Repositories.OperationStatus;
@@ -59,8 +60,8 @@ namespace UsersRestApi.Repositories.Implementers
                 return OperationStatusResonceBuilder.CreateStatusError(ex: ex);
             }
         }
-
-        public OperationStatusResponseBase RemoveImages(string path)
+      
+        public OperationStatusResponseBase RemoveImageDirectory(string path)
         {
             if (!Directory.Exists(path))           
                 return OperationStatusResonceBuilder.CreateStatusWarning("Directory not founded");
@@ -69,9 +70,18 @@ namespace UsersRestApi.Repositories.Implementers
             return OperationStatusResonceBuilder.CreateStatusSuccessfully("Directory with images has been removed");
         }
 
+        public OperationStatusResponseBase RemoveImageFile(string path)
+        {
+            if (!File.Exists(path))           
+                return OperationStatusResonceBuilder.CreateStatusWarning($"File by path: {path} doesnt found");
+            
+            File.Delete(path);
+            return OperationStatusResonceBuilder.CreateStatusSuccessfully("File has been removed");
+        }
+
         public OperationStatusResponseBase UpdateImages(string path)
         {
-            throw new NotImplementedException();
+            return null;
         }
     }
 }

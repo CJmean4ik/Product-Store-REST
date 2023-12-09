@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using ProductAPI.DTO;
 using UsersRestApi.Database.Entities;
 using UsersRestApi.DTO;
 using UsersRestApi.Entities;
@@ -28,6 +29,12 @@ namespace UsersRestApi.Mapper
                .ForMember(dest => dest.PreviewImageName, opt => opt.MapFrom(src => src.PreviewImage.FileName))
                .ForMember(dest => dest.Images, opt => opt.MapFrom(src => src.Images.Select(s => new ImageEntity { ImageName = s.FileName})))
                 .ForMember(dest => dest.DateCreated, opt => opt.MapFrom(_ => DateTime.Now));
+
+            CreateMap<ProductPostDto, ImagePostDto>()
+              .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.Name))
+              .ForMember(dest => dest.PreviewImage, opt => opt.MapFrom(src => src.PreviewImage))
+              .ForMember(dest => dest.Images, opt => opt.MapFrom(src => src.Images));
+
 
             CreateMap<ProductPutDto, ProductEntity>()
                .ForMember(dest => dest.ProductId, opt => opt.MapFrom(src => src.TransportId))

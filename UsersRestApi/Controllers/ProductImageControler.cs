@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using ProductAPI.DTO;
 using UsersRestApi.Repositories.OperationStatus;
 using UsersRestApi.Services.ImageService;
 
@@ -29,7 +30,21 @@ namespace UsersRestApi.Controllers
             HttpContext.Response.Headers.Append("Content-Disposition", $"attachment; filename={result.fileName}");
             return responce;
         }
-       
+
+        [HttpDelete("api/v1/products/images/preview")]
+        public ActionResult<OperationStatusResponseBase> RemovePreviewImage([FromBody] ImageDelDto imageDel)
+        {      
+             var result = _imagesService.RemovePreviewImage(imageDel);
+             return Json(result);
+        }
+        [HttpDelete("api/v1/products/images/collection")]
+        public ActionResult<OperationStatusResponseBase> RemoveCollectionImage([FromBody] ImageDelDto imageDel)
+        {         
+            var result = _imagesService.RemoveImages(imageDel);
+            return Json(result);
+        }
+
+
         private async Task<(ActionResult<OperationStatusResponseBase> actionResult, string fileName)> ProccesImage([FromQuery] string? Id)
         {
             if (Id is null)

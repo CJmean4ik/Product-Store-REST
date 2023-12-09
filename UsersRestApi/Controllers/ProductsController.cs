@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Mvc;
+using ProductAPI.DTO;
 using UsersRestApi.DTO;
 using UsersRestApi.Models;
 using UsersRestApi.Repositories.OperationStatus;
@@ -13,10 +15,12 @@ namespace UsersRestApi.Controllers
     {
         private ProductsService _productsService;
         private ImagesService _imagesService;
-        public ProductsController(ProductsService productsService, ImagesService imagesService)
+        private IMapper _mapper;
+        public ProductsController(ProductsService productsService, ImagesService imagesService, IMapper mapper)
         {
             _productsService = productsService;
             _imagesService = imagesService;
+            _mapper = mapper;
         }
 
         [HttpGet("api/v1/products")]
@@ -66,9 +70,13 @@ namespace UsersRestApi.Controllers
                 return Json(result);
             }
 
+            var imagePost = _mapper.Map<ProductPostDto, ImagePostDto>(product);
 
-            result.Add(_imagesService.CreatePreviewImage(product));
-            result.Add(_imagesService.CreateImages(product));
+            var resultCreationPreview = await Task.FromResult(_imagesService.CreatePreviewImage(imagePost));
+            result.Add(resultCreationPreview);
+
+            var resultCreationCollection = await Task.FromResult(_imagesService.CreateImages(imagePost));
+            result.Add(resultCreationCollection);
 
             return Json(result);
         }
@@ -79,9 +87,8 @@ namespace UsersRestApi.Controllers
             var resultProductService = await _productsService.RemoveProduct(product);
             if (resultProductService.Status == StatusName.Error || resultProductService.Status == StatusName.Warning)
                 return resultProductService;
-            
-            var resultImageService = _imagesService.RemoveAllImages(product);
-            return Json(resultProductService, resultImageService);
+            var resultImageService = _imagesService.RemoveAllImages(product.Name);
+            return Json(resultProductService);
         }
 
         [HttpPut("api/v1/products")]

@@ -1,14 +1,18 @@
-﻿using UsersRestApi.Database.EF.UpdateComponents.Arguments;
+﻿using Microsoft.Extensions.Options;
+using Microsoft.VisualBasic;
+using UsersRestApi.Database.EF.UpdateComponents.Arguments;
 using UsersRestApi.Database.Entities;
+using UsersRestApi.Models;
 
 namespace UsersRestApi.Database.EF.UpdateComponents
 {
     public class ProductModifierArgumentChanger : IProductModifierArgumentChanger
     {
         public required Dictionary<Func<ProductEntity, ProductEntity, bool>, ModifierArgumentsBase<ProductEntity, DatabaseContext>> Tracker { get; set; }
-
-        public ProductModifierArgumentChanger()
+        private ImageConfig _imageConfig;
+        public ProductModifierArgumentChanger(IOptions<ImageConfig> imageConfig)
         {
+            _imageConfig = imageConfig.Value;
             InitializeTracker();
         }
 
@@ -20,7 +24,13 @@ namespace UsersRestApi.Database.EF.UpdateComponents
                 new ProductModifierArguments
                 {
                     IsModified = false,
-                    ValueChanger = (oldProduct, newProduct) => oldProduct.Name = newProduct.Name,
+                    ValueChanger = (oldProduct, newProduct) => 
+                    {
+                        oldProduct.Name = newProduct.Name;
+                        string oldPath = _imageConfig.ProductPath.Replace("FOR_RAPLACE", oldProduct.Name);
+                        string newPath = _imageConfig.ProductPath.Replace("FOR_RAPLACE", newProduct.Name);
+                        FileSystem.Rename(oldPath,newPath);
+                    },
                     Attacher = (oldProduct, db) => db.Entry(oldProduct).Property(p => p.Name).IsModified = true
                 },
 
