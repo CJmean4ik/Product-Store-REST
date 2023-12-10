@@ -14,12 +14,10 @@ namespace UsersRestApi.Controllers
     public class ProductsController : Controller
     {
         private ProductsService _productsService;
-        private ImagesService _imagesService;
         private IMapper _mapper;
-        public ProductsController(ProductsService productsService, ImagesService imagesService, IMapper mapper)
+        public ProductsController(ProductsService productsService,IMapper mapper)
         {
             _productsService = productsService;
-            _imagesService = imagesService;
             _mapper = mapper;
         }
 
@@ -60,24 +58,7 @@ namespace UsersRestApi.Controllers
         [HttpPost("api/v1/products")]
         public async Task<ActionResult<OperationStatusResponseBase>> PostProduct([FromForm] ProductPostDto product)
         {
-
-            var result = await _productsService.CreateProduct(product);
-
-            if (!_imagesService.CreateMainDirectory(product))
-            {
-                result.Add(OperationStatusResonceBuilder
-                .CreateStatusWarning("A repository with the same name already exists for this product"));
-                return Json(result);
-            }
-
-            var imagePost = _mapper.Map<ProductPostDto, ImagePostDto>(product);
-
-            var resultCreationPreview = await Task.FromResult(_imagesService.CreatePreviewImage(imagePost));
-            result.Add(resultCreationPreview);
-
-            var resultCreationCollection = await Task.FromResult(_imagesService.CreateImages(imagePost));
-            result.Add(resultCreationCollection);
-
+            var result = await _productsService.CreateProduct(product);         
             return Json(result);
         }
 
@@ -85,9 +66,7 @@ namespace UsersRestApi.Controllers
         public async Task<ActionResult<OperationStatusResponseBase>> DeleteProduct([FromBody] ProductDelDto product)
         {
             var resultProductService = await _productsService.RemoveProduct(product);
-            if (resultProductService.Status == StatusName.Error || resultProductService.Status == StatusName.Warning)
-                return resultProductService;
-            var resultImageService = _imagesService.RemoveAllImages(product.Name);
+
             return Json(resultProductService);
         }
 

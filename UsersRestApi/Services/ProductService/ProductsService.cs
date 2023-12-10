@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using ProductAPI.DTO;
 using System.Buffers;
 using UsersRestApi.Database.Entities;
 using UsersRestApi.DTO;
@@ -14,14 +15,17 @@ namespace UsersRestApi.Services.ProductService
         private IProductRepository _repository;
         private IMapper _mapper;
         private ILogger<ProductsService> _logger;
+        private ImagesService _imagesService;
 
         public ProductsService(IProductRepository repository,
                                IMapper mapper,
+                               ImagesService imagesService,
                                ILogger<ProductsService> logger)
         {
             _repository = repository;
             _mapper = mapper;
             _logger = logger;
+            _imagesService = imagesService;
         }
 
         public async Task<List<Product>> GetProducts(int id = 0, int limit = 0)
@@ -76,6 +80,22 @@ namespace UsersRestApi.Services.ProductService
                 if (result.Status == StatusName.Error || result.Status == StatusName.Warning)
                     return operationStatuses;
 
+
+                if (!_imagesService.CreateMainDirectory(productDto))
+                {
+                    operationStatuses.Add(OperationStatusResonceBuilder
+                    .CreateStatusWarning("A repository with the same name already exists for this product"));
+                    return operationStatuses;
+                }
+
+                var imagePost = _mapper.Map<ProductPostDto, ImagePostDto>(productDto);
+
+                var resultCreationPreview = await Task.FromResult(_imagesService.CreatePreviewImage(imagePost));
+                operationStatuses.Add(resultCreationPreview);
+
+                var resultCreationCollection = await Task.FromResult(_imagesService.CreateImages(imagePost));
+                operationStatuses.Add(resultCreationCollection);
+
                 return operationStatuses;
             }
             catch (Exception ex)
@@ -93,6 +113,12 @@ namespace UsersRestApi.Services.ProductService
             {
                 var product = _mapper.Map<ProductDelDto, ProductEntity>(productDto);
                 var result = await _repository.Delete(product);
+
+                if (result.Status == StatusName.Error || result.Status == StatusName.Warning)
+                    return result;
+
+                var resultImageService = _imagesService.RemoveAllImages(product.Name);
+
                 return result;
             }
             catch (Exception ex)

@@ -79,9 +79,6 @@ namespace UsersRestApi.Repositories.Implementers
             return OperationStatusResonceBuilder.CreateStatusSuccessfully("File has been removed");
         }
 
-        public OperationStatusResponseBase UpdateImages(string path)
-        {
-            return null;
-        }
+       
     }
 }
