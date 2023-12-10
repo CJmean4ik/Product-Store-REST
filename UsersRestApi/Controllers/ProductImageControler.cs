@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using ProductAPI.DTO;
+using UsersRestApi.Repositories;
 using UsersRestApi.Repositories.OperationStatus;
 using UsersRestApi.Services.ImageService;
 
@@ -9,7 +10,7 @@ namespace UsersRestApi.Controllers
     {
         private ImagesService _imagesService;
 
-        public ProductImageControler(ImagesService imagesService)
+        public ProductImageControler(ImagesService imagesService, IProductRepository productRepository)
         {
             _imagesService = imagesService;
         }
@@ -32,18 +33,25 @@ namespace UsersRestApi.Controllers
         }
 
         [HttpDelete("api/v1/products/images/preview")]
-        public ActionResult<OperationStatusResponseBase> RemovePreviewImage([FromBody] ImageDelDto imageDel)
+        public ActionResult<OperationStatusResponseBase> DeletePreviewImage([FromBody] ImageDelDto imageDel)
         {      
              var result = _imagesService.RemovePreviewImage(imageDel);
              return Json(result);
         }
+
         [HttpDelete("api/v1/products/images/collection")]
-        public ActionResult<OperationStatusResponseBase> RemoveCollectionImage([FromBody] ImageDelDto imageDel)
+        public ActionResult<OperationStatusResponseBase> DeleteCollectionImage([FromBody] ImageDelDto imageDel)
         {         
             var result = _imagesService.RemoveImages(imageDel);
             return Json(result);
         }
 
+        [HttpPut("api/v1/products/images/preview")]
+        public async Task<ActionResult<OperationStatusResponseBase>> PutPreviewImage([FromForm] ImagePutDto imagePut)
+        {
+            var result = await _imagesService.UpdatePreviewImage(imagePut);
+            return Json(result);
+        }
 
         private async Task<(ActionResult<OperationStatusResponseBase> actionResult, string fileName)> ProccesImage([FromQuery] string? Id)
         {

@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Options;
+﻿using AutoMapper;
+using Microsoft.Extensions.Options;
 using ProductAPI.DTO;
 using UsersRestApi.Database.Entities;
 using UsersRestApi.DTO;
@@ -14,14 +15,17 @@ namespace UsersRestApi.Services.ImageService
         private IImageReposiroty<IFormFile, OperationStatusResponseBase> _imageRepository;
         private ImageConfig _imageConfig;
         private IProductRepository _repository;
+        private IMapper _mapper;
 
         public ImagesService(IImageReposiroty<IFormFile, OperationStatusResponseBase> imageReposiroty,
                             IOptions<ImageConfig> imageConfig,
-                            IProductRepository repository)
+                            IProductRepository repository,
+                            IMapper mapper)
         {
             _imageRepository = imageReposiroty;
             _imageConfig = imageConfig.Value;
             _repository = repository;
+            _mapper = mapper;
         }
 
         public async Task<(OperationStatusResponseBase responce, string imageName)> GetImage(int productId)
@@ -104,6 +108,39 @@ namespace UsersRestApi.Services.ImageService
             var result = _imageRepository.RemoveImageDirectory(path);
             return result;
         }
+
+        public async Task<OperationStatusResponseBase> UpdatePreviewImage(ImagePutDto imagePut)
+        {
+            string oldPath = _imageConfig.ProductPreviewPath.Replace("PRODUCT_NAME", imagePut.ProductName)
+                                                         .Replace("FILE_NAME", imagePut.OldPreviewName);
+
+            OperationStatusResponseBase result = _imageRepository.RemoveImageFile(oldPath);
+
+            if (result.Status == StatusName.Warning)
+                return result;
+
+            var fileName = Path.GetFileName(imagePut.NewPreview.FileName);
+
+            var path = _imageConfig.ProductPreviewPath
+                .Replace("PRODUCT_NAME", imagePut.ProductName)
+                .Replace("FILE_NAME", fileName);
+
+            result = _imageRepository.CreateImage(imagePut.NewPreview,path);
+
+
+            var productPut = new ProductPutDto()
+            {
+                TransportId = imagePut.ProductId,
+                PreviewImage = fileName
+            };
+
+            var productEntity = _mapper.Map<ProductPutDto,ProductEntity>(productPut);
+            result = await _repository.Update(productEntity);
+
+            return result;
+        }
+
+
         public bool CreateMainDirectory(ProductPostDto productPost)
         {
             if (!_imageConfig.CreateProductDirectory(productPost.Name))

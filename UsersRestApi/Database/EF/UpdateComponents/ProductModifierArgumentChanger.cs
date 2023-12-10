@@ -57,6 +57,13 @@ namespace UsersRestApi.Database.EF.UpdateComponents
                     ValueChanger = (oldProduct, newProduct) => oldProduct.CountOnStorage = newProduct.CountOnStorage,
                     Attacher = (oldProduct, db) => db.Entry(oldProduct).Property(p => p.CountOnStorage).IsModified = true
                 },
+                [(oldProduct, newProduct) => newProduct.PreviewImageName != "" && oldProduct.PreviewImageName != newProduct.PreviewImageName] =
+                new ProductModifierArguments
+                {
+                    IsModified = false,
+                    ValueChanger = (oldProduct, newProduct) => oldProduct.PreviewImageName = newProduct.PreviewImageName,
+                    Attacher = (oldProduct, db) => db.Entry(oldProduct).Property(p => p.PreviewImageName).IsModified = true
+                },
             };
         }
 
