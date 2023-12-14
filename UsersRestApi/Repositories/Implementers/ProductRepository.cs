@@ -6,12 +6,12 @@ using UsersRestApi.Repositories.OperationStatus;
 
 namespace UsersRestApi.Repositories
 {
-    public class ProductRepositoryEF : IProductRepository
+    public class ProductRepository : IProductRepository
     {
         private DatabaseContext _db;
-        private ILogger<ProductRepositoryEF> _logger;
+        private ILogger<ProductRepository> _logger;
         private IProductModifierArgumentChanger _argumentChanger;
-        public ProductRepositoryEF(DatabaseContext db, ILogger<ProductRepositoryEF> logger, IProductModifierArgumentChanger argumentChanger)
+        public ProductRepository(DatabaseContext db, ILogger<ProductRepository> logger, IProductModifierArgumentChanger argumentChanger)
         {
             _db = db;
             _logger = logger;
@@ -60,7 +60,7 @@ namespace UsersRestApi.Repositories
             try
             {
                 var product = await _db.Products.FindAsync(entity!.ProductId);
-                
+
                 if (product is null)
                 {
                     _logger.LogWarning($"Product at id: [{entity.ProductId}] not found");
@@ -166,6 +166,56 @@ namespace UsersRestApi.Repositories
                 string ERROR_MESSAGE = $"Failed to update entity. Message: [{ex.Message}]. Reason: [detailed error description]. Time: " + DateTime.Now;
                 _logger.LogError(ERROR_MESSAGE);
                 return OperationStatusResonceBuilder.CreateStatusError(message: ERROR_MESSAGE);
+            }
+        }
+        public async Task<OperationStatusResponseBase> UpdataProductImages(ProductEntity product)
+        {
+            try
+            {
+                var productFromDb = await _db.Products.Where(w => w.ProductId == product.ProductId)
+                    .Include(i => i.Images)
+                    .FirstOrDefaultAsync();
+
+                if (productFromDb is null)
+                {
+                    _logger.LogInformation($"Entity has null");
+                    return OperationStatusResonceBuilder
+                        .CreateCustomStatus<object>($"Entity for updating by id: [{product.ProductId}] not found", StatusName.Warning, null);
+                }
+                _argumentChanger.SearchAndChangeImageModifieArguments(productFromDb, product, _db);
+
+                await _db.SaveChangesAsync();
+                _logger.LogInformation($"Entity successfully updated. Identifier: [{productFromDb.ProductId}]");
+                return OperationStatusResonceBuilder.CreateStatusUpdating(productFromDb);
+            }
+            catch (Exception ex)
+            {
+                string ERROR_MESSAGE = $"Failed to update entity. Message: [{ex.Message}]. Reason: [detailed error description]. Time: " + DateTime.Now;
+                _logger.LogError(ERROR_MESSAGE);
+                return OperationStatusResonceBuilder.CreateStatusError(message: ERROR_MESSAGE);
+            }
+        }
+
+        public async Task<OperationStatusResponseBase> AddImages(int productId, List<ImageEntity> images)
+        {
+            try
+            {
+                var product = await _db.Products.Where(w => w.ProductId == productId)
+                                  .Include(i => i.Images)
+                                  .FirstOrDefaultAsync();
+
+                if (product == null)
+                    return OperationStatusResonceBuilder
+                        .CreateStatusWarning($"Entity by id: [{productId}] not found");
+
+                product.Images.AddRange(images);
+
+                await _db.SaveChangesAsync();
+                return OperationStatusResonceBuilder.CreateStatusSuccessfully("Image/Images have been added for product by name: " + product.Name);
+            }
+            catch (Exception ex)
+            {
+                return OperationStatusResonceBuilder.CreateStatusError(ex);
             }
         }
     }

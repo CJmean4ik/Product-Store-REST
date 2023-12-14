@@ -1,6 +1,5 @@
 ﻿using AutoMapper;
 using ProductAPI.DTO;
-using System.Buffers;
 using UsersRestApi.Database.Entities;
 using UsersRestApi.DTO;
 using UsersRestApi.Models;
@@ -66,35 +65,25 @@ namespace UsersRestApi.Services.ProductService
             var products = _mapper.Map<List<ProductEntity>, List<Product>>(productsEntities);
             return products;
         }
-
         public async Task<List<OperationStatusResponseBase>> CreateProduct(ProductPostDto productDto)
         {
             var operationStatuses = new List<OperationStatusResponseBase>();
             try
-            {             
+            {
                 var productEntity = _mapper.Map<ProductPostDto, ProductEntity>(productDto);
                 var result = await _repository.Create(productEntity);
+
+                productDto.ProductId = productEntity.ProductId;
 
                 operationStatuses.Add(result);
 
                 if (result.Status == StatusName.Error || result.Status == StatusName.Warning)
                     return operationStatuses;
 
-
-                if (!_imagesService.CreateMainDirectory(productDto))
-                {
-                    operationStatuses.Add(OperationStatusResonceBuilder
-                    .CreateStatusWarning("A repository with the same name already exists for this product"));
-                    return operationStatuses;
-                }
-
                 var imagePost = _mapper.Map<ProductPostDto, ImagePostDto>(productDto);
 
-                var resultCreationPreview = await Task.FromResult(_imagesService.CreatePreviewImage(imagePost));
-                operationStatuses.Add(resultCreationPreview);
-
-                var resultCreationCollection = await Task.FromResult(_imagesService.CreateImages(imagePost));
-                operationStatuses.Add(resultCreationCollection);
+                var resultCreationImages = await _imagesService.CreateImage(imagePost);
+                operationStatuses.AddRange(resultCreationImages);
 
                 return operationStatuses;
             }
@@ -117,7 +106,12 @@ namespace UsersRestApi.Services.ProductService
                 if (result.Status == StatusName.Error || result.Status == StatusName.Warning)
                     return result;
 
-                var resultImageService = _imagesService.RemoveAllImages(product.Name);
+                /*
+                foreach (var item in collection)
+                {
+                    var resultImageService = _imagesService.RemoveImage();
+                }
+              */
 
                 return result;
             }
