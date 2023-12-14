@@ -5,6 +5,7 @@
         public int OperationId { get; set; }
         public StatusName Status { get; set; }
         public string? Title { get; set; }
+        public string? Message { get; set; }
     }
 
     public enum StatusName

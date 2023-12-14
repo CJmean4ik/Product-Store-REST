@@ -1,5 +1,8 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.FileProviders;
+using Microsoft.Extensions.Options;
+using ProductAPI.DTO;
 using UsersRestApi.Database.EF;
 using UsersRestApi.Database.EF.UpdateComponents;
 using UsersRestApi.Database.Entities;
@@ -40,12 +43,12 @@ namespace UsersRestApi
 
             builder.Services.Configure<ImageConfig>(builder.Configuration.GetSection("PathToImages"));
 
-            builder.Services.AddScoped<IProductRepository, ProductRepositoryEF>();
+            builder.Services.AddScoped<IProductRepository, ProductRepository>();
             builder.Services.AddScoped<IProductModifierArgumentChanger, ProductModifierArgumentChanger>();
-            builder.Services.AddScoped<IUserRepository<UserEntity, OperationStatusResponseBase>, UserRepositoryEF>();
+            builder.Services.AddScoped<IUserRepository<UserEntity, OperationStatusResponseBase>, UserRepository>();
             builder.Services.AddScoped<IPasswordHasher<UserEntity>, PasswordHasher>();
             builder.Services.AddScoped<IEmailVerifySender, EmailVerifySender>();
-            builder.Services.AddScoped<IImageReposiroty<IFormFile, OperationStatusResponseBase>, ImageRepository>();
+            builder.Services.AddScoped<IImageReposiroty<IFormFile, OperationStatusResponseBase, ImagePutDto>, ImageRepository>();
           
             builder.Services.AddScoped<ProductsService>();
             builder.Services.AddScoped<UsersService>();
@@ -53,10 +56,18 @@ namespace UsersRestApi
 
             var app = builder.Build();
 
+
+            app.UseStaticFiles(new StaticFileOptions 
+            {
+                FileProvider = new PhysicalFileProvider(builder.Configuration.GetSection("PathToImages:MainPath").Value!),
+                RequestPath = "/api/v1/products/images/preview"
+            });
+
             app.UseAuthentication();
             app.UseAuthorization();
             app.MapControllers();
 
+           
             app.Run();
         }
     }

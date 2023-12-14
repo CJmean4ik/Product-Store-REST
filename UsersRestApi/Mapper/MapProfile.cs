@@ -25,14 +25,15 @@ namespace UsersRestApi.Mapper
 
 
             CreateMap<ProductPostDto, ProductEntity>()
+               .ForMember(dest => dest.ProductId, opt => opt.Ignore())
                .ForMember(dest => dest.SubCategory, opt => opt.MapFrom(src => new SubCategoryEntity { Name = src.SubCategory }))
                .ForMember(dest => dest.PreviewImageName, opt => opt.MapFrom(src => src.PreviewImage.FileName))
-               .ForMember(dest => dest.Images, opt => opt.MapFrom(src => src.Images.Select(s => new ImageEntity { ImageName = s.FileName})))
-                .ForMember(dest => dest.DateCreated, opt => opt.MapFrom(_ => DateTime.Now));
+               .ForMember(dest => dest.Images, opt => opt.Ignore())
+               .ForMember(dest => dest.DateCreated, opt => opt.MapFrom(_ => DateTime.Now));
 
             CreateMap<ProductPostDto, ImagePostDto>()
-              .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.Name))
-              .ForMember(dest => dest.PreviewImage, opt => opt.MapFrom(src => src.PreviewImage))
+              .ForMember(dest => dest.ProductId, opt => opt.MapFrom(src => src.ProductId))
+              .ForMember(dest => dest.Preview, opt => opt.MapFrom(src => src.PreviewImage))
               .ForMember(dest => dest.Images, opt => opt.MapFrom(src => src.Images));
 
 

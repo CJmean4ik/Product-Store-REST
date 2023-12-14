@@ -2,7 +2,6 @@
 using Microsoft.Extensions.Options;
 using ProductAPI.DTO;
 using UsersRestApi.Database.Entities;
-using UsersRestApi.DTO;
 using UsersRestApi.Models;
 using UsersRestApi.Repositories;
 using UsersRestApi.Repositories.Interfaces;
@@ -12,12 +11,12 @@ namespace UsersRestApi.Services.ImageService
 {
     public class ImagesService
     {
-        private IImageReposiroty<IFormFile, OperationStatusResponseBase> _imageRepository;
+        private IImageReposiroty<IFormFile, OperationStatusResponseBase, ImagePutDto> _imageRepository;
         private ImageConfig _imageConfig;
         private IProductRepository _repository;
         private IMapper _mapper;
 
-        public ImagesService(IImageReposiroty<IFormFile, OperationStatusResponseBase> imageReposiroty,
+        public ImagesService(IImageReposiroty<IFormFile, OperationStatusResponseBase, ImagePutDto> imageReposiroty,
                             IOptions<ImageConfig> imageConfig,
                             IProductRepository repository,
                             IMapper mapper)
@@ -27,90 +26,66 @@ namespace UsersRestApi.Services.ImageService
             _repository = repository;
             _mapper = mapper;
         }
-
-        public async Task<(OperationStatusResponseBase responce, string imageName)> GetImage(int productId)
+        public async Task<List<OperationStatusResponseBase>> CreateImage(ImagePostDto imagePost)
         {
-            string path;
-            string productName;
-            string previewName;
-            ProductEntity? product;
-            OperationStatusResponseBase result;
+            var results = new List<OperationStatusResponseBase>();
 
-            product = await _repository.GetById(productId);
+            if (imagePost.Preview != null && imagePost.Images.Count != 0)
+            {
+                results.Add(createPreviewImage(imagePost.Preview));
+                results.AddRange(await createCollectionImages(imagePost));
+                return results;
+            }
 
-            if (product is null)
-                return (OperationStatusResonceBuilder
-                    .CreateStatusWarning($"The user could not be found under the id [{productId}]"), "");
-
-            productName = product.Name;
-            previewName = product.PreviewImageName;
-
-            path = _imageConfig.ProductPreviewPath
-                               .Replace("PRODUCT_NAME", productName)
-                               .Replace("FILE_NAME", previewName);
-
-            result = await _imageRepository.GetImageAsync(path);
-
-
-            return (result, previewName);
+            if (imagePost.Images.Count != 0)            
+                results.AddRange(await createCollectionImages(imagePost));
+            
+            return results;
         }
-        public OperationStatusResponseBase CreatePreviewImage(ImagePostDto imagePost)
+
+        private OperationStatusResponseBase createPreviewImage(IFormFile preview)
         {
-            _imageConfig.CreatePreviewDirectory(imagePost.ProductName);
-
-            var fileName = Path.GetFileName(imagePost.PreviewImage.FileName);
-            var path = _imageConfig.ProductPreviewPath
-                .Replace("PRODUCT_NAME", imagePost.ProductName)
-                .Replace("FILE_NAME", fileName);
-
-            var result = _imageRepository.CreateImage(imagePost.PreviewImage, path);
+            var result = _imageRepository.CreateImage(preview);
             return result;
         }
-        public OperationStatusResponseBase CreateImages(ImagePostDto imagePost)
-        {     
-            _imageConfig.CreateImageDirectory(imagePost.ProductName);
+        private async Task<List<OperationStatusResponseBase>> createCollectionImages(ImagePostDto imagePost)
+        {
+            var results = new List<OperationStatusResponseBase>();
+            var addedImage = new List<ImageEntity>();
 
-            var result = _imageRepository.CreateImages(imagePost.Images, imagePost.ProductName);
-            return result;
+            foreach (var file in imagePost.Images)
+            {
+                var addedImageResult = _imageRepository.CreateImage(file);
+                if (addedImageResult.Status == StatusName.Successfully)
+                {
+                    addedImage.Add(new ImageEntity
+                    {
+                        ImageName = file.FileName
+                    });                 
+                }
+                results.Add(addedImageResult);
+            }
+
+            var result = await _repository.AddImages(imagePost.ProductId, addedImage);
+
+            results.Add(result);
+
+            return results;
         }
 
-        public OperationStatusResponseBase RemovePreviewImage(ImageDelDto imageDel)
+        public OperationStatusResponseBase RemoveImage(ImageDelDto imageDel)
         {
-            string path = _imageConfig.ProductPreviewPath
-                                      .Replace("PRODUCT_NAME", imageDel.ProductName)
-                                      .Replace("FILE_NAME",imageDel.PreviewImageName);
+            string path = _imageConfig.ProductPath
+                                      .Replace("FILE_NAME", imageDel.ImageName);
             var result = _imageRepository.RemoveImageFile(path);
             return result;
         }
-        public OperationStatusResponseBase RemoveImages(ImageDelDto imageDel)
-        {
-            string[]? fileNames = imageDel.AllImagesName;
-
-            if (fileNames == null)          
-               return OperationStatusResonceBuilder.CreateStatusWarning(" There is no white image to delete");
 
 
-            OperationStatusResponseBase result = new OperationStatusResponse<string>();
-
-            for (int i = 0; i < fileNames.Length; i++)
-            {
-                string path = _imageConfig.ProductPreviewPath
-                                     .Replace("PRODUCT_NAME", imageDel.ProductName)
-                                     .Replace("FILE_NAME", imageDel.PreviewImageName);
-              result = _imageRepository.RemoveImageFile(path);
-            }
-           
-            return result;
-        }
-        public OperationStatusResponseBase RemoveAllImages(string productName)
-        {
-            string path = _imageConfig.ProductPath.Replace("FOR_RAPLACE", productName);
-            var result = _imageRepository.RemoveImageDirectory(path);
-            return result;
-        }
-
+        /*
         public async Task<OperationStatusResponseBase> UpdatePreviewImage(ImagePutDto imagePut)
         {
+
             string oldPath = _imageConfig.ProductPreviewPath.Replace("PRODUCT_NAME", imagePut.ProductName)
                                                          .Replace("FILE_NAME", imagePut.OldPreviewName);
 
@@ -139,13 +114,14 @@ namespace UsersRestApi.Services.ImageService
 
             return result;
         }
-
-
-        public bool CreateMainDirectory(ProductPostDto productPost)
+        public async Task<List<OperationStatusResponseBase>> UpdateCollectionImage(ImagePutDto imagePut)
         {
-            if (!_imageConfig.CreateProductDirectory(productPost.Name))
-                return false;
-            return true;
+            var result = _imageRepository.UpdateImages(imagePut);
+            var product = _mapper.Map<ImagePutDto, ProductEntity>(imagePut);
+            var productUpdateResult = await _repository.UpdataProductImages(product);
+            result.Add(productUpdateResult);
+            return result;
         }
+        */
     }
 }

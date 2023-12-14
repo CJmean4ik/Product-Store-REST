@@ -2,8 +2,8 @@
 {
     public class ImagePostDto
     {
-        public string ProductName { get; set; }
-        public IFormFile PreviewImage { get; set; }
-        public List<IFormFile> Images { get; set; }
+        public int ProductId { get; set; }
+        public IFormFile? Preview { get; set; }
+        public List<IFormFile> Images { get; set; } = new List<IFormFile>();
     }
 }

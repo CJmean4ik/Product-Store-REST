@@ -2,12 +2,9 @@
 
 namespace UsersRestApi.Repositories.Interfaces
 {
-    public interface IImageReposiroty<T, R>
-    {
-        Task<R> GetImageAsync(string path);
-        R CreateImage(T image, string path);
-        R CreateImages(List<T> image, string productName);
+    public interface IImageReposiroty<T, R, D>
+    {      
+        R CreateImage(T image);
         R RemoveImageFile(string path);
-        R RemoveImageDirectory(string path);
     }
 }

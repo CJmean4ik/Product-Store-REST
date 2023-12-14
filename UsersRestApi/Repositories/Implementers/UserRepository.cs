@@ -6,12 +6,12 @@ using UsersRestApi.Repositories.OperationStatus;
 
 namespace UsersRestApi.Repositories.Interfaces
 {
-    public class UserRepositoryEF : IUserRepository<UserEntity, OperationStatusResponseBase>
+    public class UserRepository : IUserRepository<UserEntity, OperationStatusResponseBase>
     {
         private DatabaseContext _db;
-        private ILogger<UserRepositoryEF> _logger;
+        private ILogger<UserRepository> _logger;
 
-        public UserRepositoryEF(DatabaseContext db, ILogger<UserRepositoryEF> logger)
+        public UserRepository(DatabaseContext db, ILogger<UserRepository> logger)
         {
             _db = db;
             _logger = logger;
