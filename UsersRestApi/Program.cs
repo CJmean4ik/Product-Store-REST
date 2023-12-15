@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Options;
-using ProductAPI.DTO;
+using ProductAPI.DTO.Image;
 using UsersRestApi.Database.EF;
 using UsersRestApi.Database.EF.UpdateComponents;
 using UsersRestApi.Database.Entities;

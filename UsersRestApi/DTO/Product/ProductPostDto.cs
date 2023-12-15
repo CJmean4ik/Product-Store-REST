@@ -1,13 +1,14 @@
-﻿namespace UsersRestApi.DTO
+﻿namespace ProductAPI.DTO.Product
 {
-    public class ProductPutDto
+    public class ProductPostDto
     {
-        public int TransportId { get; set; }
+        public int ProductId { get; set; }
         public string Name { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
         public decimal Price { get; set; }
         public int CountOnStorage { get; set; }
-        public string PreviewImage { get; set; } = string.Empty;
+        public IFormFile PreviewImage { get; set; }
+        public List<IFormFile> Images { get; set; }
         public string SubCategory { get; set; } = string.Empty;
     }
 }

@@ -1,7 +1,8 @@
 ﻿using AutoMapper;
-using ProductAPI.DTO;
+using ProductAPI.DTO.Image;
+using ProductAPI.DTO.Product;
+using ProductAPI.DTO.User;
 using UsersRestApi.Database.Entities;
-using UsersRestApi.DTO;
 using UsersRestApi.Entities;
 using UsersRestApi.Models;
 

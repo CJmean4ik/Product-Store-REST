@@ -1,4 +1,4 @@
-﻿namespace ProductAPI.DTO
+﻿namespace ProductAPI.DTO.Image
 {
     public class ImagePostDto
     {

@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using ProductAPI.DTO;
+using ProductAPI.DTO.Image;
 using UsersRestApi.Repositories;
 using UsersRestApi.Repositories.OperationStatus;
 using UsersRestApi.Services.ImageService;
@@ -22,11 +22,13 @@ namespace UsersRestApi.Controllers
             return Json(result);
         }
 
-
         [HttpDelete("api/v1/products/images")]
-        public ActionResult<OperationStatusResponseBase> DeleteImage([FromBody] ImageDelDto imageDel)
+        public async Task<ActionResult<OperationStatusResponseBase>> DeleteImage([FromForm] ImageDelDto imageDel)
         {
-            var result = _imagesService.RemoveImage(imageDel);
+            if (imageDel.ImageNames.Count == 0)
+                return OperationStatusResonceBuilder.CreateStatusWarning("Cannot removing images by empty list");
+
+            var result = await _imagesService.RemoveImage(imageDel);
             return Json(result);
         }
            

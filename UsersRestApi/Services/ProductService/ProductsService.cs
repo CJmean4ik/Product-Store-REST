@@ -1,7 +1,7 @@
 ﻿using AutoMapper;
-using ProductAPI.DTO;
+using ProductAPI.DTO.Image;
+using ProductAPI.DTO.Product;
 using UsersRestApi.Database.Entities;
-using UsersRestApi.DTO;
 using UsersRestApi.Models;
 using UsersRestApi.Repositories;
 using UsersRestApi.Repositories.OperationStatus;

@@ -2,9 +2,9 @@
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.Extensions.Caching.Memory;
+using ProductAPI.DTO.User;
 using System.Security.Claims;
 using UsersRestApi.Database.Entities;
-using UsersRestApi.DTO;
 using UsersRestApi.Entities;
 using UsersRestApi.Repositories.Interfaces;
 using UsersRestApi.Repositories.OperationStatus;
