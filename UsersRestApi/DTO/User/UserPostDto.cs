@@ -1,4 +1,4 @@
-﻿namespace UsersRestApi.DTO
+﻿namespace ProductAPI.DTO.User
 {
     public class UserPostDto
     {

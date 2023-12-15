@@ -195,7 +195,6 @@ namespace UsersRestApi.Repositories
                 return OperationStatusResonceBuilder.CreateStatusError(message: ERROR_MESSAGE);
             }
         }
-
         public async Task<OperationStatusResponseBase> AddImages(int productId, List<ImageEntity> images)
         {
             try
@@ -212,6 +211,38 @@ namespace UsersRestApi.Repositories
 
                 await _db.SaveChangesAsync();
                 return OperationStatusResonceBuilder.CreateStatusSuccessfully("Image/Images have been added for product by name: " + product.Name);
+            }
+            catch (Exception ex)
+            {
+                return OperationStatusResonceBuilder.CreateStatusError(ex);
+            }
+        }
+        public async Task<OperationStatusResponseBase> RemoveImages(int? productId, List<string> imagesForDeleting)
+        {
+            try
+            {
+                var images = await _db.ImageEntities
+                    .Where(w => w.ProductEntity.ProductId == productId)
+                    .ToListAsync();
+
+                if (images == null)
+                    return OperationStatusResonceBuilder
+                        .CreateStatusWarning($"Images by id product: [{productId}] not found");
+
+                foreach (var image in images)
+                {
+                    foreach (var imageForDeleting in imagesForDeleting)
+                    {
+                        if (image.ImageName == imageForDeleting)
+                        {
+                            _db.ImageEntities.Remove(image);
+                            break;
+                        }
+                    }
+                }
+                                       
+                await _db.SaveChangesAsync();
+                return OperationStatusResonceBuilder.CreateStatusSuccessfully("Image / Images have been removed for product by id: " + productId);
             }
             catch (Exception ex)
             {

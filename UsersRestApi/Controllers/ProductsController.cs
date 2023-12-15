@@ -1,7 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using ProductAPI.DTO;
-using UsersRestApi.DTO;
+using ProductAPI.DTO.Product;
 using UsersRestApi.Models;
 using UsersRestApi.Repositories.OperationStatus;
 using UsersRestApi.Services.ImageService;

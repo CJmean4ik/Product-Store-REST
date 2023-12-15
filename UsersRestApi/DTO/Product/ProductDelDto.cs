@@ -1,4 +1,4 @@
-﻿namespace UsersRestApi.DTO
+﻿namespace ProductAPI.DTO.Product
 {
     public class ProductDelDto
     {

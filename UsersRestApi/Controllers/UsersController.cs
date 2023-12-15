@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using UsersRestApi.DTO;
+using ProductAPI.DTO.User;
 using UsersRestApi.Repositories.OperationStatus;
 using UsersRestApi.Services.UserService;
 

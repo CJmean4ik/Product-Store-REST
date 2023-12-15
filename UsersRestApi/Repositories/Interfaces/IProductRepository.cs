@@ -11,6 +11,8 @@ namespace UsersRestApi.Repositories
 
         Task<OperationStatusResponseBase> AddImages(int productId, List<ImageEntity> images);
         Task<OperationStatusResponseBase> UpdataProductImages(ProductEntity productEntity);
+
+        Task<OperationStatusResponseBase> RemoveImages(int? productId, List<string> imageName);
         
     }
 }

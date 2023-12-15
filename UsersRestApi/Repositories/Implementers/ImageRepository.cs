@@ -1,5 +1,5 @@
 ﻿using Microsoft.Extensions.Options;
-using ProductAPI.DTO;
+using ProductAPI.DTO.Image;
 using UsersRestApi.Models;
 using UsersRestApi.Repositories.Interfaces;
 using UsersRestApi.Repositories.OperationStatus;
@@ -14,11 +14,16 @@ namespace UsersRestApi.Repositories.Implementers
         {
             _imageConfig = imageConfig.Value;
         }
-        public OperationStatusResponseBase CreateImage(IFormFile file)
+        public OperationStatusResponseBase CreateImage(IFormFile file, bool creatCopyIfExist = false)
         {
             try
             {
                 string path = _imageConfig.ProductPath.Replace("FILE_NAME", file.FileName);
+
+
+                if (File.Exists(path) && creatCopyIfExist)           
+                    return OperationStatusResonceBuilder
+                        .CreateStatusWarning($"Same image with name: {file.FileName} alredy exist in directory");                             
 
                 using (FileStream fileStream = new FileStream(path: path, FileMode.CreateNew))
                 {

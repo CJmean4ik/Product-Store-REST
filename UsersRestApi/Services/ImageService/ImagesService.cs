@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.Extensions.Options;
-using ProductAPI.DTO;
+using ProductAPI.DTO.Image;
 using UsersRestApi.Database.Entities;
 using UsersRestApi.Models;
 using UsersRestApi.Repositories;
@@ -42,7 +42,6 @@ namespace UsersRestApi.Services.ImageService
             
             return results;
         }
-
         private OperationStatusResponseBase createPreviewImage(IFormFile preview)
         {
             var result = _imageRepository.CreateImage(preview);
@@ -73,13 +72,33 @@ namespace UsersRestApi.Services.ImageService
             return results;
         }
 
-        public OperationStatusResponseBase RemoveImage(ImageDelDto imageDel)
-        {
-            string path = _imageConfig.ProductPath
-                                      .Replace("FILE_NAME", imageDel.ImageName);
-            var result = _imageRepository.RemoveImageFile(path);
-            return result;
+        public async Task<List<OperationStatusResponseBase>> RemoveImage(ImageDelDto imageDel)
+        {           
+            var imagesForRemoving = new List<string>();
+
+            var results = new List<OperationStatusResponseBase>();
+
+            foreach (var imageName in imageDel.ImageNames)
+            {
+                string path = _imageConfig.ProductPath
+                                     .Replace("FILE_NAME", imageName);
+                var result = _imageRepository.RemoveImageFile(path);
+
+                if (result.Status == StatusName.Successfully)                
+                    imagesForRemoving.Add(imageName);
+
+                results.Add(result);
+            }
+
+            if (imagesForRemoving.Count == 0)
+                return results;
+
+            var repositoryResult = await _repository.RemoveImages(imageDel.ProductId, imagesForRemoving);
+            results.Add(repositoryResult);
+
+            return results;
         }
+
 
 
         /*
