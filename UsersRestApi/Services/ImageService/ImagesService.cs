@@ -37,9 +37,9 @@ namespace UsersRestApi.Services.ImageService
                 return results;
             }
 
-            if (imagePost.Images.Count != 0)            
+            if (imagePost.Images.Count != 0)
                 results.AddRange(await createCollectionImages(imagePost));
-            
+
             return results;
         }
         private OperationStatusResponseBase createPreviewImage(IFormFile preview)
@@ -60,7 +60,7 @@ namespace UsersRestApi.Services.ImageService
                     addedImage.Add(new ImageEntity
                     {
                         ImageName = file.FileName
-                    });                 
+                    });
                 }
                 results.Add(addedImageResult);
             }
@@ -71,9 +71,8 @@ namespace UsersRestApi.Services.ImageService
 
             return results;
         }
-
         public async Task<List<OperationStatusResponseBase>> RemoveImage(ImageDelDto imageDel)
-        {           
+        {
             var imagesForRemoving = new List<string>();
 
             var results = new List<OperationStatusResponseBase>();
@@ -84,7 +83,7 @@ namespace UsersRestApi.Services.ImageService
                                      .Replace("FILE_NAME", imageName);
                 var result = _imageRepository.RemoveImageFile(path);
 
-                if (result.Status == StatusName.Successfully)                
+                if (result.Status == StatusName.Successfully)
                     imagesForRemoving.Add(imageName);
 
                 results.Add(result);
@@ -99,48 +98,22 @@ namespace UsersRestApi.Services.ImageService
             return results;
         }
 
-
-
-        /*
-        public async Task<OperationStatusResponseBase> UpdatePreviewImage(ImagePutDto imagePut)
+        public async Task<List<OperationStatusResponseBase>> UpdateImages(ImagePutDto imagePut)
         {
+            var results = new List<OperationStatusResponseBase>();
+            
+                var path = _imageConfig.ProductPath
+                                       .Replace("FILE_NAME", imagePut.OldImageName);
+                var result = _imageRepository.RemoveImageFile(path);
 
-            string oldPath = _imageConfig.ProductPreviewPath.Replace("PRODUCT_NAME", imagePut.ProductName)
-                                                         .Replace("FILE_NAME", imagePut.OldPreviewName);
+                results.Add(result);
 
-            OperationStatusResponseBase result = _imageRepository.RemoveImageFile(oldPath);
-
-            if (result.Status == StatusName.Warning)
-                return result;
-
-            var fileName = Path.GetFileName(imagePut.NewPreview.FileName);
-
-            var path = _imageConfig.ProductPreviewPath
-                .Replace("PRODUCT_NAME", imagePut.ProductName)
-                .Replace("FILE_NAME", fileName);
-
-            result = _imageRepository.CreateImage(imagePut.NewPreview,path);
-
-
-            var productPut = new ProductPutDto()
-            {
-                TransportId = imagePut.ProductId,
-                PreviewImage = fileName
-            };
-
-            var productEntity = _mapper.Map<ProductPutDto,ProductEntity>(productPut);
-            result = await _repository.Update(productEntity);
-
-            return result;
+                if (result.Status == StatusName.Successfully)              
+                    result = _imageRepository.CreateImage(imagePut.NewImage!);                               
+                      
+            
+            results.Add(await _repository.UpdateImages(imagePut.ProductId, imagePut.OldImageName!, imagePut.NewImage!.FileName));
+            return results;
         }
-        public async Task<List<OperationStatusResponseBase>> UpdateCollectionImage(ImagePutDto imagePut)
-        {
-            var result = _imageRepository.UpdateImages(imagePut);
-            var product = _mapper.Map<ImagePutDto, ProductEntity>(imagePut);
-            var productUpdateResult = await _repository.UpdataProductImages(product);
-            result.Add(productUpdateResult);
-            return result;
-        }
-        */
     }
 }

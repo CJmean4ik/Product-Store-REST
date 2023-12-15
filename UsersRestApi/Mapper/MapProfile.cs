@@ -17,7 +17,7 @@ namespace UsersRestApi.Mapper
                {
                    CategoryName = src.SubCategory.Category.Name,
                    SubCategoryName = src.SubCategory.Name
-               }))          
+               }))
                .ForMember(dest => dest.Image, opt => opt.MapFrom(src => new Image
                {
                    PreviewImage = src.PreviewImageName,
@@ -46,6 +46,11 @@ namespace UsersRestApi.Mapper
             CreateMap<ProductDelDto, ProductEntity>()
                .ForMember(dest => dest.ProductId, opt => opt.MapFrom(src => src.TransportId))
                .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Name));
+
+            CreateMap<ImagePutDto, ProductEntity>()
+              .ForMember(dest => dest.ProductId, opt => opt.MapFrom(src => src.ProductId))
+              .ForMember(dest => dest.Images, opt => opt.MapFrom(src => new List<ImageEntity> { new ImageEntity { ImageName = src.NewImage.FileName } }));
+
 
             CreateMap<UserPostDto, User>();
             CreateMap<UserEntity, User>();

@@ -10,8 +10,7 @@ namespace UsersRestApi.Repositories
         Task<List<ProductEntity>?> GetLimint(int limit);
 
         Task<OperationStatusResponseBase> AddImages(int productId, List<ImageEntity> images);
-        Task<OperationStatusResponseBase> UpdataProductImages(ProductEntity productEntity);
-
+        Task<OperationStatusResponseBase> UpdateImages(int productId, string oldName, string newName);
         Task<OperationStatusResponseBase> RemoveImages(int? productId, List<string> imageName);
         
     }

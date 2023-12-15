@@ -79,7 +79,6 @@ namespace UsersRestApi.Database.EF.UpdateComponents
                 }
             }
         }
-
         public void ChangeFoundModifieArguments(ProductEntity oldEntity, DatabaseContext db)
         {
             foreach (var track in Tracker)
@@ -94,22 +93,6 @@ namespace UsersRestApi.Database.EF.UpdateComponents
         public async Task SaveChangesAsync(DatabaseContext context)
         {
             await context.SaveChangesAsync();
-        }
-        
-        public void SearchAndChangeImageModifieArguments(ProductEntity oldEntity, ProductEntity newEntity,DatabaseContext db)
-        {
-            var oldImages = oldEntity.Images;
-            var newImages = newEntity.Images;
-            for (int i = 0; i < newImages.Count; i++)
-            {
-                if (newImages[i].ImageName == "do not update")
-                    continue;
-
-                oldImages[i].ImageName = newImages[i].ImageName;
-            }
-
-            oldEntity.Images = oldImages;
-            db.Entry(oldEntity).Property(p => p.Images).IsModified = true;
-        }
+        }             
     }
 }

@@ -34,8 +34,12 @@ namespace UsersRestApi.Controllers
            
         [HttpPut("api/v1/products/images")]
         public async Task<ActionResult<OperationStatusResponseBase>> PutCollectionImage([FromForm] ImagePutDto imagePut)
-        {       
-            return Json("");
+        {
+            if (imagePut.NewImage == null || imagePut.OldImageName == "")           
+                return OperationStatusResonceBuilder.CreateStatusWarning("Cannot updating image by empty file or name");
+            
+            var result = await _imagesService.UpdateImages(imagePut);
+            return Json(result);
         }
 
     }
