@@ -3,6 +3,8 @@
     public class ImagePutDto
     {
         public int ProductId { get; set; }
-        public List<ImageDto> Images { get; set; }
+        public string? OldImageName { get; set; }
+        public IFormFile? NewImage { get; set; }
+
     }
 }

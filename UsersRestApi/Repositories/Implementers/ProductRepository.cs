@@ -17,7 +17,9 @@ namespace UsersRestApi.Repositories
             _logger = logger;
             _argumentChanger = argumentChanger;
         }
+        #region Product_Manipulation
 
+       
         public async Task<OperationStatusResponseBase> Create(ProductEntity? entity)
         {
             try
@@ -168,25 +170,33 @@ namespace UsersRestApi.Repositories
                 return OperationStatusResonceBuilder.CreateStatusError(message: ERROR_MESSAGE);
             }
         }
-        public async Task<OperationStatusResponseBase> UpdataProductImages(ProductEntity product)
+        #endregion
+
+        #region Product_Image_Manipulation
+
+   
+        public async Task<OperationStatusResponseBase> UpdateImages(int productId, string oldName, string newName)
         {
             try
             {
-                var productFromDb = await _db.Products.Where(w => w.ProductId == product.ProductId)
-                    .Include(i => i.Images)
+                var imageEntity = await _db.ImageEntities
+                    .Where(w => w.ImageName == oldName && w.ProductEntity.ProductId == productId)
                     .FirstOrDefaultAsync();
 
-                if (productFromDb is null)
+                if (imageEntity is null)
                 {
                     _logger.LogInformation($"Entity has null");
                     return OperationStatusResonceBuilder
-                        .CreateCustomStatus<object>($"Entity for updating by id: [{product.ProductId}] not found", StatusName.Warning, null);
+                        .CreateCustomStatus<object>($"Entity for updating by id: [{productId}] not found", StatusName.Warning, null);
                 }
-                _argumentChanger.SearchAndChangeImageModifieArguments(productFromDb, product, _db);
 
+                imageEntity.ImageName = newName;
+
+                _db.Entry(imageEntity).Property(p => p.ImageName).IsModified = true;
                 await _db.SaveChangesAsync();
-                _logger.LogInformation($"Entity successfully updated. Identifier: [{productFromDb.ProductId}]");
-                return OperationStatusResonceBuilder.CreateStatusUpdating(productFromDb);
+
+                _logger.LogInformation($"Entity successfully updated. Identifier: [{imageEntity.ImageId}]");
+                return OperationStatusResonceBuilder.CreateStatusUpdating(imageEntity);
             }
             catch (Exception ex)
             {
@@ -249,6 +259,8 @@ namespace UsersRestApi.Repositories
                 return OperationStatusResonceBuilder.CreateStatusError(ex);
             }
         }
+
+        #endregion
     }
 
 }
