@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using ProductAPI.DTO.Image;
 using UsersRestApi.Database.Entities;
@@ -26,38 +27,64 @@ namespace UsersRestApi.Services.ImageService
             _repository = repository;
             _mapper = mapper;
         }
+
+        public IActionResult GetImageByType(string imageType, string imageName)
+        {
+            if (imageType == "preview")
+            {
+                string path = _imageConfig.PreviewPath.Replace("FILE_NAME", imageName);
+
+                if (File.Exists(path))
+                    return new PhysicalFileResult(path, "image/jpeg");
+
+                return new StatusCodeResult(404);
+            }
+            if (imageType == "collection")
+            {
+                string path = _imageConfig.CollectionPath.Replace("FILE_NAME", imageName);
+
+                if (File.Exists(path))
+                    return new PhysicalFileResult(path, "image/jpeg");
+
+                return new StatusCodeResult(404);
+            }
+
+            return new JsonResult($"Unknown type of image you are trying to request: {imageType}");
+        }
         public async Task<List<OperationStatusResponseBase>> CreateImage(ImagePostDto imagePost)
         {
             var results = new List<OperationStatusResponseBase>();
 
             if (imagePost.Preview != null && imagePost.Images.Count != 0)
             {
-                results.Add(createPreviewImage(imagePost.Preview));
-                results.AddRange(await createCollectionImages(imagePost));
+                results.Add(createPreviewImage(imagePost.Preview, imagePost.ReplaceImageIfExist));
+                results.AddRange(await createCollectionImages(imagePost, imagePost.ReplaceImageIfExist));
                 return results;
             }
 
             if (imagePost.Images.Count != 0)
-                results.AddRange(await createCollectionImages(imagePost));
+                results.AddRange(await createCollectionImages(imagePost, imagePost.ReplaceImageIfExist));
 
             return results;
         }
-        private OperationStatusResponseBase createPreviewImage(IFormFile preview)
+        private OperationStatusResponseBase createPreviewImage(IFormFile preview, bool replaceImageIfExist)
         {
-            var result = _imageRepository.CreateImage(preview);
+            string path = _imageConfig.PreviewPath.Replace("FILE_NAME", preview.FileName);
+            var result = _imageRepository.CreateImage(preview, path, replaceImageIfExist);
             return result;
         }
-        private async Task<List<OperationStatusResponseBase>> createCollectionImages(ImagePostDto imagePost)
+        private async Task<List<OperationStatusResponseBase>> createCollectionImages(ImagePostDto imagePost, bool replaceImageIfExist)
         {
             var results = new List<OperationStatusResponseBase>();
-            var addedImage = new List<ImageEntity>();
+            var addedImages = new List<ImageEntity>();
 
             foreach (var file in imagePost.Images)
             {
-                var addedImageResult = _imageRepository.CreateImage(file);
+                string path = _imageConfig.CollectionPath.Replace("FILE_NAME", file.FileName);
+                var addedImageResult = _imageRepository.CreateImage(file, path, replaceImageIfExist);
                 if (addedImageResult.Status == StatusName.Successfully)
                 {
-                    addedImage.Add(new ImageEntity
+                    addedImages.Add(new ImageEntity
                     {
                         ImageName = file.FileName
                     });
@@ -65,7 +92,7 @@ namespace UsersRestApi.Services.ImageService
                 results.Add(addedImageResult);
             }
 
-            var result = await _repository.AddImages(imagePost.ProductId, addedImage);
+            var result = await _repository.AddImages(imagePost.ProductId, addedImages);
 
             results.Add(result);
 
@@ -76,42 +103,51 @@ namespace UsersRestApi.Services.ImageService
             var imagesForRemoving = new List<string>();
 
             var results = new List<OperationStatusResponseBase>();
-
-            foreach (var imageName in imageDel.ImageNames)
-            {
-                string path = _imageConfig.ProductPath
-                                     .Replace("FILE_NAME", imageName);
-                var result = _imageRepository.RemoveImageFile(path);
-
-                if (result.Status == StatusName.Successfully)
-                    imagesForRemoving.Add(imageName);
-
-                results.Add(result);
-            }
-
-            if (imagesForRemoving.Count == 0)
-                return results;
+            removeExistingImages(imageDel, imagesForRemoving, results);
 
             var repositoryResult = await _repository.RemoveImages(imageDel.ProductId, imagesForRemoving);
+
             results.Add(repositoryResult);
 
             return results;
+        }
+        private void removeExistingImages(ImageDelDto imageDel, List<string> imagesForRemoving, List<OperationStatusResponseBase> results)
+        {
+            foreach (var imageParams in imageDel.ParamsDelDtos)
+            {
+                string path;
+
+                if (imageParams.IsPreviewRemoving)
+                    path = _imageConfig.PreviewPath.Replace("FILE_NAME", imageParams.ImageName);
+
+                path = _imageConfig.CollectionPath.Replace("FILE_NAME", imageParams.ImageName);
+
+                var result = _imageRepository.RemoveImageFile(path);
+
+                if (result.Status == StatusName.Successfully)
+                    imagesForRemoving.Add(imageParams.ImageName);
+
+                results.Add(result);
+            }
         }
 
         public async Task<List<OperationStatusResponseBase>> UpdateImages(ImagePutDto imagePut)
         {
             var results = new List<OperationStatusResponseBase>();
-            
-                var path = _imageConfig.ProductPath
-                                       .Replace("FILE_NAME", imagePut.OldImageName);
-                var result = _imageRepository.RemoveImageFile(path);
+            string path = string.Empty;
 
-                results.Add(result);
-
-                if (result.Status == StatusName.Successfully)              
-                    result = _imageRepository.CreateImage(imagePut.NewImage!);                               
-                      
+            if (imagePut.IsPreviewUpdating)           
+                path = _imageConfig.PreviewPath.Replace("FILE_NAME", imagePut.OldImageName);
             
+            path = _imageConfig.CollectionPath.Replace("FILE_NAME", imagePut.OldImageName);
+
+            var result = _imageRepository.RemoveImageFile(path);
+
+            results.Add(result);
+
+            if (result.Status == StatusName.Successfully)           
+                result = _imageRepository.CreateImage(imagePut.NewImage!, "");
+
             results.Add(await _repository.UpdateImages(imagePut.ProductId, imagePut.OldImageName!, imagePut.NewImage!.FileName));
             return results;
         }
