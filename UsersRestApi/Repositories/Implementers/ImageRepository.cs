@@ -14,13 +14,10 @@ namespace UsersRestApi.Repositories.Implementers
         {
             _imageConfig = imageConfig.Value;
         }
-        public OperationStatusResponseBase CreateImage(IFormFile file, bool creatCopyIfExist = false)
+        public OperationStatusResponseBase CreateImage(IFormFile file,string path, bool creatCopyIfExist = false)
         {
             try
             {
-                string path = _imageConfig.ProductPath.Replace("FILE_NAME", file.FileName);
-
-
                 if (File.Exists(path) && creatCopyIfExist)           
                     return OperationStatusResonceBuilder
                         .CreateStatusWarning($"Same image with name: {file.FileName} alredy exist in directory");                             

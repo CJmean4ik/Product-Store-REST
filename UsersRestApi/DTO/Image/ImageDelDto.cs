@@ -3,6 +3,6 @@
     public class ImageDelDto
     {
         public int? ProductId { get; set; }
-        public List<string> ImageNames { get; set; } = new List<string>();
+        public List<ImageParamsDelDto> ParamsDelDtos { get; set; } = new List<ImageParamsDelDto>();
     }
 }

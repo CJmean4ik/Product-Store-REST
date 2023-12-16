@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using System.Text;
 using UsersRestApi.Database.EF;
 using UsersRestApi.Database.EF.UpdateComponents;
 using UsersRestApi.Database.Entities;
@@ -19,7 +20,7 @@ namespace UsersRestApi.Repositories
         }
         #region Product_Manipulation
 
-       
+
         public async Task<OperationStatusResponseBase> Create(ProductEntity? entity)
         {
             try
@@ -174,7 +175,7 @@ namespace UsersRestApi.Repositories
 
         #region Product_Image_Manipulation
 
-   
+
         public async Task<OperationStatusResponseBase> UpdateImages(int productId, string oldName, string newName)
         {
             try
@@ -217,16 +218,43 @@ namespace UsersRestApi.Repositories
                     return OperationStatusResonceBuilder
                         .CreateStatusWarning($"Entity by id: [{productId}] not found");
 
-                product.Images.AddRange(images);
+                StringBuilder stringBuilder = AddNonExistingImages(images, product);
 
                 await _db.SaveChangesAsync();
-                return OperationStatusResonceBuilder.CreateStatusSuccessfully("Image/Images have been added for product by name: " + product.Name);
+                return OperationStatusResonceBuilder.CreateStatusSuccessfully(stringBuilder.ToString());
             }
             catch (Exception ex)
             {
                 return OperationStatusResonceBuilder.CreateStatusError(ex);
             }
         }
+
+        private StringBuilder AddNonExistingImages(List<ImageEntity> images, ProductEntity? product)
+        {
+            StringBuilder stringBuilder = new StringBuilder();
+            foreach (var image in images)
+            {
+                bool canAdd = true;
+                foreach (var productImage in product.Images)
+                {
+                    if (productImage.ImageName == image.ImageName)
+                    {
+                        canAdd = false;
+                        stringBuilder.AppendLine($"This image: new-image[{image.ImageName}] with the same name: same-image[{productImage.ImageName}] already exists for the product: {product.Name} ");
+                        break;
+                    }
+                }
+
+                if (canAdd)
+                {
+                    product.Images.Add(image);
+                    stringBuilder.AppendLine($" Image: [{image.ImageName}] have been added for product by name: [{product.Name}] ");
+                }
+            }
+
+            return stringBuilder;
+        }
+
         public async Task<OperationStatusResponseBase> RemoveImages(int? productId, List<string> imagesForDeleting)
         {
             try
@@ -250,7 +278,7 @@ namespace UsersRestApi.Repositories
                         }
                     }
                 }
-                                       
+
                 await _db.SaveChangesAsync();
                 return OperationStatusResonceBuilder.CreateStatusSuccessfully("Image / Images have been removed for product by id: " + productId);
             }

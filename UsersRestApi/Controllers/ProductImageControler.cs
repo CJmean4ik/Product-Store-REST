@@ -15,6 +15,13 @@ namespace UsersRestApi.Controllers
             _imagesService = imagesService;
         }
 
+        [HttpGet("api/v1/products/images/{typeImage}/{imageName}")]
+        public IActionResult GetImage(string typeImage, string imageName)
+        {
+            var result = _imagesService.GetImageByType(typeImage,imageName);
+            return result;
+        }
+
         [HttpPost("api/v1/products/images")]
         public async Task<ActionResult<OperationStatusResponseBase>> CreateImage([FromForm] ImagePostDto imagePost)
         {
@@ -25,7 +32,7 @@ namespace UsersRestApi.Controllers
         [HttpDelete("api/v1/products/images")]
         public async Task<ActionResult<OperationStatusResponseBase>> DeleteImage([FromForm] ImageDelDto imageDel)
         {
-            if (imageDel.ImageNames.Count == 0)
+            if (imageDel.ParamsDelDtos.Count == 0)
                 return OperationStatusResonceBuilder.CreateStatusWarning("Cannot removing images by empty list");
 
             var result = await _imagesService.RemoveImage(imageDel);

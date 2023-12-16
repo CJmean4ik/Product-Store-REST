@@ -54,18 +54,10 @@ namespace UsersRestApi
 
             var app = builder.Build();
 
-
-            app.UseStaticFiles(new StaticFileOptions 
-            {
-                FileProvider = new PhysicalFileProvider(builder.Configuration.GetSection("PathToImages:MainPath").Value!),
-                RequestPath = "/api/v1/products/images/preview"
-            });
-
             app.UseAuthentication();
             app.UseAuthorization();
             app.MapControllers();
-
-           
+            
             app.Run();
         }
     }
