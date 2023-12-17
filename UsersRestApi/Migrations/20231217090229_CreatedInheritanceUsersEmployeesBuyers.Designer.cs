@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using UsersRestApi.Database.EF;
 
@@ -11,9 +12,11 @@ using UsersRestApi.Database.EF;
 namespace UsersRestApi.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    partial class DatabaseContextModelSnapshot : ModelSnapshot
+    [Migration("20231217090229_CreatedInheritanceUsersEmployeesBuyers")]
+    partial class CreatedInheritanceUsersEmployeesBuyers
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -29,6 +32,10 @@ namespace UsersRestApi.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Discriminator")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Email")
                         .IsRequired()
@@ -50,7 +57,46 @@ namespace UsersRestApi.Migrations
 
                     b.ToTable("Users");
 
-                    b.UseTptMappingStrategy();
+                    b.HasDiscriminator<string>("Discriminator").HasValue("BaseUserEntity");
+
+                    b.UseTphMappingStrategy();
+                });
+
+            modelBuilder.Entity("ProductAPI.Models.Buyer", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("HashPassword")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PhoneNumber")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Salt")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Surname")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Username")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Buyers");
                 });
 
             modelBuilder.Entity("UsersRestApi.Database.Entities.CategoryEntity", b =>
@@ -153,21 +199,6 @@ namespace UsersRestApi.Migrations
                     b.ToTable("SubCategories");
                 });
 
-            modelBuilder.Entity("ProductAPI.Database.Entities.BuyerEntity", b =>
-                {
-                    b.HasBaseType("ProductAPI.Database.Entities.BaseUserEntity");
-
-                    b.Property<string>("PhoneNumber")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Surname")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.ToTable("Buyers");
-                });
-
             modelBuilder.Entity("UsersRestApi.Database.Entities.EmployeeEntity", b =>
                 {
                     b.HasBaseType("ProductAPI.Database.Entities.BaseUserEntity");
@@ -176,7 +207,7 @@ namespace UsersRestApi.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.ToTable("Employees");
+                    b.HasDiscriminator().HasValue("EmployeeEntity");
                 });
 
             modelBuilder.Entity("UsersRestApi.Database.Entities.ImageEntity", b =>
@@ -210,24 +241,6 @@ namespace UsersRestApi.Migrations
                         .IsRequired();
 
                     b.Navigation("Category");
-                });
-
-            modelBuilder.Entity("ProductAPI.Database.Entities.BuyerEntity", b =>
-                {
-                    b.HasOne("ProductAPI.Database.Entities.BaseUserEntity", null)
-                        .WithOne()
-                        .HasForeignKey("ProductAPI.Database.Entities.BuyerEntity", "Id")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("UsersRestApi.Database.Entities.EmployeeEntity", b =>
-                {
-                    b.HasOne("ProductAPI.Database.Entities.BaseUserEntity", null)
-                        .WithOne()
-                        .HasForeignKey("UsersRestApi.Database.Entities.EmployeeEntity", "Id")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
                 });
 
             modelBuilder.Entity("UsersRestApi.Database.Entities.CategoryEntity", b =>

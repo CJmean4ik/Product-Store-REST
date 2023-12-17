@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
+using ProductAPI.Database.Entities;
 using ProductAPI.DTO.Image;
 using UsersRestApi.Database.EF;
 using UsersRestApi.Database.EF.UpdateComponents;
@@ -43,8 +44,8 @@ namespace UsersRestApi
 
             builder.Services.AddScoped<IProductRepository, ProductRepository>();
             builder.Services.AddScoped<IProductModifierArgumentChanger, ProductModifierArgumentChanger>();
-            builder.Services.AddScoped<IUserRepository<UserEntity, OperationStatusResponseBase>, UserRepository>();
-            builder.Services.AddScoped<IPasswordHasher<UserEntity>, PasswordHasher>();
+            builder.Services.AddScoped<IUserRepository<BaseUserEntity, OperationStatusResponseBase>, UserRepository>();
+            builder.Services.AddScoped<IPasswordHasher<BaseUserEntity>, PasswordHasher>();
             builder.Services.AddScoped<IEmailVerifySender, EmailVerifySender>();
             builder.Services.AddScoped<IImageReposiroty<IFormFile, OperationStatusResponseBase, ImagePutDto>, ImageRepository>();
           

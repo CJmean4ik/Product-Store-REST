@@ -74,7 +74,7 @@ namespace UsersRestApi.Repositories
                 var images = product.Images;
 
                 _db.Products.Remove(product);
-                _db.ImageEntities.RemoveRange(images);
+                _db.Images.RemoveRange(images);
 
                 await _db.SaveChangesAsync();
                 return OperationStatusResonceBuilder.CreateStatusRemoving(entity);
@@ -180,7 +180,7 @@ namespace UsersRestApi.Repositories
         {
             try
             {
-                var imageEntity = await _db.ImageEntities
+                var imageEntity = await _db.Images
                     .Where(w => w.ImageName == oldName && w.ProductEntity.ProductId == productId)
                     .FirstOrDefaultAsync();
 
@@ -259,7 +259,7 @@ namespace UsersRestApi.Repositories
         {
             try
             {
-                var images = await _db.ImageEntities
+                var images = await _db.Images
                     .Where(w => w.ProductEntity.ProductId == productId)
                     .ToListAsync();
 
@@ -273,12 +273,11 @@ namespace UsersRestApi.Repositories
                     {
                         if (image.ImageName == imageForDeleting)
                         {
-                            _db.ImageEntities.Remove(image);
+                            _db.Images.Remove(image);
                             break;
                         }
                     }
                 }
-
                 await _db.SaveChangesAsync();
                 return OperationStatusResonceBuilder.CreateStatusSuccessfully("Image / Images have been removed for product by id: " + productId);
             }

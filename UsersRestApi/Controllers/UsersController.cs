@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using ProductAPI.DTO.User;
 using UsersRestApi.Repositories.OperationStatus;
 using UsersRestApi.Services.UserService;
@@ -16,19 +17,25 @@ namespace UsersRestApi.Controllers
 
 
         [HttpPost("/sign-in")]
-
-        public async Task<ActionResult<OperationStatusResponseBase>> SignIn([FromBody] UserPostDto user)
+        public async Task<ActionResult<OperationStatusResponseBase>> SignIn([FromForm] UserAuthorizePostDto user)
         {
             var result = await _usersService.LoginUser(user, HttpContext);
             return Json(result);
         }
-        [HttpPost("/sign-up")]
-        public ActionResult<OperationStatusResponseBase> SignUp([FromBody]UserPostDto userForRegistering)
-        {
-            var result = _usersService.SendMailVerifyCode(userForRegistering);
-            HttpContext.Response.Cookies.Append("NowIsVerifyMail", "true");
 
-            return Json(new { Body = result, Code = 200 });
+        [HttpPost("/sign-up/employee")]
+        [Authorize(Roles = "admin")]
+        public ActionResult<OperationStatusResponseBase> SignUp([FromForm] EmployeeRegistrationPostDto userForRegistering)
+        {
+            var result = registerUserBasedOnRole(userForRegistering);
+            return result;
+        }
+
+        [HttpPost("/sign-up/buyer")]
+        public ActionResult<OperationStatusResponseBase> SignUp([FromForm] BuyerRegistrationPostDto userForRegistering)
+        {
+            var result = registerUserBasedOnRole(userForRegistering);
+            return result;
         }
 
         [HttpPost("/verify-mail")]
@@ -37,11 +44,12 @@ namespace UsersRestApi.Controllers
             if (!HttpContext.Request.Cookies.ContainsKey("NowIsVerifyMail"))
                 return Json("This endpoint is available to users who are undergoing mail verification");
 
-            if (!_usersService.IsVerifyMail(code))           
+            if (!_usersService.IsVerifyMail(code))
                 return Json("Wrong code. Enter again");
-            
+
 
             HttpContext.Response.Cookies.Append("IsMailVerify", "true");
+            HttpContext.Response.Cookies.Delete("NowIsVerifyMail");
             return Ok();
         }
 
@@ -54,10 +62,15 @@ namespace UsersRestApi.Controllers
             var result = await _usersService.RegisterUser();
 
             HttpContext.Response.Cookies.Delete("IsMailVerify");
-            HttpContext.Response.Cookies.Delete("NowIsVerifyMail");
-
             return Json(result);
         }
 
+        private ActionResult<OperationStatusResponseBase> registerUserBasedOnRole(UserBaseDto userBase)
+        {
+            var result = _usersService.SendMailVerifyCode(userBase);
+            HttpContext.Response.Cookies.Append("NowIsVerifyMail", "true");
+
+            return Json(new { Body = result, Code = 200 });
+        }
     }
 }
