@@ -1,16 +1,15 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using ProductAPI.DTO;
 using ProductAPI.DTO.Product;
 using UsersRestApi.Models;
 using UsersRestApi.Repositories.OperationStatus;
-using UsersRestApi.Services.ImageService;
 using UsersRestApi.Services.ProductService;
 
 namespace UsersRestApi.Controllers
 {
     [ApiController]
-    //[Authorize]
+    [Authorize(Roles = "admin, contentMaker")]
     public class ProductsController : Controller
     {
         private ProductsService _productsService;
@@ -21,7 +20,9 @@ namespace UsersRestApi.Controllers
             _mapper = mapper;
         }
 
+
         [HttpGet("api/v1/products")]
+        [AllowAnonymous]
         public async Task<ActionResult<List<Product>>> GetProducts()
         {
             try

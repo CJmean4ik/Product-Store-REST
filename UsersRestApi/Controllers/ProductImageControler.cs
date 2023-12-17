@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using ProductAPI.DTO.Image;
 using UsersRestApi.Repositories;
 using UsersRestApi.Repositories.OperationStatus;
@@ -6,6 +7,8 @@ using UsersRestApi.Services.ImageService;
 
 namespace UsersRestApi.Controllers
 {
+    [Authorize(Roles = "admin, contentMaker")]
+    [ApiController]
     public class ProductImageControler : Controller
     {
         private ImagesService _imagesService;
@@ -16,6 +19,7 @@ namespace UsersRestApi.Controllers
         }
 
         [HttpGet("api/v1/products/images/{typeImage}/{imageName}")]
+        [AllowAnonymous]
         public IActionResult GetImage(string typeImage, string imageName)
         {
             var result = _imagesService.GetImageByType(typeImage,imageName);

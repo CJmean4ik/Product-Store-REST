@@ -37,13 +37,12 @@ namespace UsersRestApi.Controllers
             if (!HttpContext.Request.Cookies.ContainsKey("NowIsVerifyMail"))
                 return Json("This endpoint is available to users who are undergoing mail verification");
 
-            if (!_usersService.IsVerifyMail(code))
-            {
+            if (!_usersService.IsVerifyMail(code))           
                 return Json("Wrong code. Enter again");
-            }
+            
 
             HttpContext.Response.Cookies.Append("IsMailVerify", "true");
-            return Redirect("/create-account");
+            return Ok();
         }
 
         [HttpPost("/create-account")]

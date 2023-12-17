@@ -130,7 +130,6 @@ namespace UsersRestApi.Services.ImageService
                 results.Add(result);
             }
         }
-
         public async Task<List<OperationStatusResponseBase>> UpdateImages(ImagePutDto imagePut)
         {
             var results = new List<OperationStatusResponseBase>();
