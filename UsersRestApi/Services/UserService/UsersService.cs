@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.Extensions.Caching.Memory;
+using ProductAPI.Database.Entities;
 using ProductAPI.DTO.User;
 using System.Security.Claims;
 using UsersRestApi.Database.Entities;
@@ -15,14 +16,14 @@ namespace UsersRestApi.Services.UserService
 {
     public class UsersService
     {
-        private IUserRepository<UserEntity, OperationStatusResponseBase> _repository;
-        private IPasswordHasher<UserEntity> _passwordHasher;
+        private IUserRepository<BaseUserEntity, OperationStatusResponseBase> _repository;
+        private IPasswordHasher<BaseUserEntity> _passwordHasher;
         private IEmailVerifySender _emailSender;
         private IMemoryCache _memoryCache;
         private IMapper _mapper;
 
-        public UsersService(IUserRepository<UserEntity, OperationStatusResponseBase> repository,
-                               IPasswordHasher<UserEntity> passwordHasher,
+        public UsersService(IUserRepository<BaseUserEntity, OperationStatusResponseBase> repository,
+                               IPasswordHasher<BaseUserEntity> passwordHasher,
                                IEmailVerifySender emailSender,
                                IMemoryCache memoryCache,
                                IMapper mapper)
@@ -34,7 +35,7 @@ namespace UsersRestApi.Services.UserService
             _mapper = mapper;
         }
 
-        public async Task<OperationStatusResponseBase> LoginUser(UserPostDto userForLogin, HttpContext httpContext)
+        public async Task<OperationStatusResponseBase> LoginUser(UserAuthorizePostDto userForLogin, HttpContext httpContext)
         {
             try
             {
@@ -42,16 +43,16 @@ namespace UsersRestApi.Services.UserService
 
                 if (userEntity is null) return OperationStatusResonceBuilder.CreateStatusWrongUsername();
 
-                var user = _mapper.Map<UserEntity, User>(userEntity);
+                var employee = _mapper.Map<BaseUserEntity, Employee>(userEntity);
 
-                if (!_passwordHasher.Decryption(userForLogin.EnteredPassword, user.Salt, user.HashPassword))
+                if (!_passwordHasher.Decryption(userForLogin.EnteredPassword, employee.Salt, employee.HashPassword))
                     return OperationStatusResonceBuilder.CreateStatusWrongPassword();
 
                 var claims = new List<Claim>
                 {
-                    new Claim(ClaimTypes.Name, user.Username),
-                    new Claim(ClaimTypes.Email, user.Email),
-                    new Claim(ClaimTypes.Role, user.Role)
+                    new Claim(ClaimTypes.Name, employee.Username),
+                    new Claim(ClaimTypes.Email, employee.Email),
+                    new Claim(ClaimTypes.Role, employee.Role)
                 };
 
                 ClaimsIdentity claimsIdentity = new ClaimsIdentity(claims, "Cookies");
@@ -65,7 +66,7 @@ namespace UsersRestApi.Services.UserService
                 return OperationStatusResonceBuilder.CreateStatusError(ex);
             }
         }
-        public OperationStatusResponseBase SendMailVerifyCode(UserPostDto user)
+        public OperationStatusResponseBase SendMailVerifyCode(UserBaseDto user)
         {
             try
             {
@@ -96,19 +97,27 @@ namespace UsersRestApi.Services.UserService
         }
         public async Task<OperationStatusResponseBase> RegisterUser()
         {
-            if (!_memoryCache.TryGetValue("CurrentUser", out UserPostDto? userDto))
+            if (!_memoryCache.TryGetValue("CurrentUser", out UserBaseDto? userDto))
                 return OperationStatusResonceBuilder
                     .CreateCustomStatus<object>("User data was unexpectedly lost", StatusName.Warning,null);
 
-            var userEntity = _mapper.Map<UserPostDto, UserEntity>(userDto);
 
-            _passwordHasher.Encryption(userDto!.EnteredPassword, userEntity);
+            BaseUserEntity userForAdding = new BaseUserEntity();
 
-            var result = await _repository.Create(userEntity);
+            if (userDto is EmployeeRegistrationPostDto employee)          
+                userForAdding = _mapper.Map<EmployeeRegistrationPostDto, EmployeeEntity>(employee);
+
+            if (userDto is BuyerRegistrationPostDto buyer)
+                userForAdding = _mapper.Map<BuyerRegistrationPostDto, BuyerEntity>(buyer);
+
+
+            _passwordHasher.Encryption(userDto!.EnteredPassword, userForAdding);
+
+            var result = await _repository.Create(userForAdding);
 
             _memoryCache.Remove("CurrentUser");
 
-            return OperationStatusResonceBuilder.CreateStatusRegistered();
+            return OperationStatusResonceBuilder.CreateStatusRegistered(message: result.Message);
         }
     }
 }

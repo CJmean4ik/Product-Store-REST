@@ -1,12 +1,12 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using ProductAPI.Database.Entities;
 using UsersRestApi.Database.EF;
 using UsersRestApi.Database.Entities;
-using UsersRestApi.Entities;
 using UsersRestApi.Repositories.OperationStatus;
 
 namespace UsersRestApi.Repositories.Interfaces
 {
-    public class UserRepository : IUserRepository<UserEntity, OperationStatusResponseBase>
+    public class UserRepository : IUserRepository<BaseUserEntity, OperationStatusResponseBase>
     {
         private DatabaseContext _db;
         private ILogger<UserRepository> _logger;
@@ -17,7 +17,7 @@ namespace UsersRestApi.Repositories.Interfaces
             _logger = logger;
         }
 
-        public async Task<OperationStatusResponseBase> Create(UserEntity entity)
+        public async Task<OperationStatusResponseBase> Create(BaseUserEntity entity)
         {
             try
             {
@@ -32,11 +32,16 @@ namespace UsersRestApi.Repositories.Interfaces
                     return OperationStatusResonceBuilder.CreateStatusAuthorized();
                 }
 
-                await _db.Users.AddAsync(entity);
+                if (entity is BuyerEntity buyer)
+                    await _db.Users.AddAsync(buyer);
+
+                if (entity is EmployeeEntity employee)
+                    await _db.Users.AddAsync(employee);
+
                 await _db.SaveChangesAsync();
 
                 _logger.LogInformation($"Users Successful added id: [{entity.Id}]");
-                return OperationStatusResonceBuilder.CreateStatusAdding(entity);
+                return OperationStatusResonceBuilder.CreateStatusSuccessfully("User have been added in Database");
             }
             catch (Exception ex)
             {
@@ -45,11 +50,12 @@ namespace UsersRestApi.Repositories.Interfaces
                 return OperationStatusResonceBuilder.CreateStatusError(message: ERROR_MESSAGE);
             }
         }
-        public async Task<UserEntity> GetByName(string name)
+
+        public async Task<EmployeeEntity> GetByName(string name)
         {
             try
             {
-                var user = await _db.Users
+                var user = await _db.Employees
                     .Where(w => w.Username == name)
                     .FirstOrDefaultAsync();
 
@@ -59,7 +65,7 @@ namespace UsersRestApi.Repositories.Interfaces
                     _logger.LogWarning(WARRNING_MESSAGE);
                     return user;
                 }
-                
+
                 _logger.LogInformation($"Users Successful added id: [{user.Id}]");
                 return user;
             }
@@ -70,6 +76,11 @@ namespace UsersRestApi.Repositories.Interfaces
                 return null;
             }
         }
+
+        Task<BaseUserEntity> IUserRepository<BaseUserEntity, OperationStatusResponseBase>.GetByName(string name)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
-            
+

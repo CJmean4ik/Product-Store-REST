@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using ProductAPI.Database.Entities;
 using ProductAPI.DTO.Image;
 using ProductAPI.DTO.Product;
 using ProductAPI.DTO.User;
@@ -52,9 +53,26 @@ namespace UsersRestApi.Mapper
               .ForMember(dest => dest.Images, opt => opt.MapFrom(src => new List<ImageEntity> { new ImageEntity { ImageName = src.NewImage.FileName } }));
 
 
-            CreateMap<UserPostDto, User>();
-            CreateMap<UserEntity, User>();
-            CreateMap<UserPostDto, UserEntity>();
+            CreateMap<EmployeeRegistrationPostDto, EmployeeEntity>()
+                .ForMember(dest => dest.Username, opt => opt.MapFrom(src => src.Username))
+                .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.Email))
+                .ForMember(dest => dest.HashPassword, opt => opt.Ignore())
+                .ForMember(dest => dest.Salt, opt => opt.Ignore())
+                .ForMember(dest => dest.Role, opt => opt.MapFrom(src => src.Role));
+
+
+            CreateMap<BuyerRegistrationPostDto, BuyerEntity>()
+               .ForMember(dest => dest.Username, opt => opt.MapFrom(src => src.Username))
+               .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.Email))
+               .ForMember(dest => dest.Surname, opt => opt.MapFrom(src => src.Surname))
+               .ForMember(dest => dest.HashPassword, opt => opt.Ignore())
+               .ForMember(dest => dest.Salt, opt => opt.Ignore())
+               .ForMember(dest => dest.PhoneNumber, opt => opt.MapFrom(src => src.PhoneNumber));
+
+
+            CreateMap<UserAuthorizePostDto, Employee>();
+            CreateMap<EmployeeEntity, Employee>();
+            CreateMap<UserAuthorizePostDto, EmployeeEntity>();
         }
 
     }

@@ -1,6 +1,6 @@
 ﻿namespace ProductAPI.DTO.User
 {
-    public class UserPostDto
+    public class UserBaseDto
     {
         public string Username { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
