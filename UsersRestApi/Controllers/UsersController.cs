@@ -23,6 +23,15 @@ namespace UsersRestApi.Controllers
             return Json(result);
         }
 
+        [HttpPost("/log-out")]
+        [Authorize(Roles = "admin,contentMaker,buyer,manager")]
+        public async Task<ActionResult<OperationStatusResponseBase>> SignOut()
+        {
+            var result = await _usersService.LogOutUser(HttpContext);
+            return Json(result);
+        }
+
+
         [HttpPost("/sign-up/employee")]
         [Authorize(Roles = "admin")]
         public ActionResult<OperationStatusResponseBase> SignUp([FromForm] EmployeeRegistrationPostDto userForRegistering)

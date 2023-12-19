@@ -17,7 +17,7 @@ namespace UsersRestApi.Repositories.Interfaces
             _logger = logger;
         }
 
-        public async Task<OperationStatusResponseBase> Create(BaseUserEntity entity)
+        public async Task<OperationStatusResponseBase> Create(BaseUserEntity? entity)
         {
             try
             {
@@ -27,7 +27,7 @@ namespace UsersRestApi.Repositories.Interfaces
 
                 if (user is not null)
                 {
-                    string WARRNING_MESSAGE = $"User with that username: [{entity.Username}] and email: [{entity.Email}] - alredy exist in database";
+                    string WARRNING_MESSAGE = $"User with that username: [{entity.Username}] or email: [{entity.Email}] - alredy exist in database";
                     _logger.LogWarning(WARRNING_MESSAGE);
                     return OperationStatusResonceBuilder.CreateStatusAuthorized();
                 }
@@ -51,11 +51,11 @@ namespace UsersRestApi.Repositories.Interfaces
             }
         }
 
-        public async Task<EmployeeEntity> GetByName(string name)
+        public async Task<BaseUserEntity> GetByName(string name)
         {
             try
             {
-                var user = await _db.Employees
+                var user = await _db.Users
                     .Where(w => w.Username == name)
                     .FirstOrDefaultAsync();
 
@@ -75,12 +75,7 @@ namespace UsersRestApi.Repositories.Interfaces
                 _logger.LogWarning(ERROR_MESSAGE);
                 return null;
             }
-        }
-
-        Task<BaseUserEntity> IUserRepository<BaseUserEntity, OperationStatusResponseBase>.GetByName(string name)
-        {
-            throw new NotImplementedException();
-        }
+        }        
     }
 }
 

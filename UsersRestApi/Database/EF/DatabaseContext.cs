@@ -15,6 +15,7 @@ namespace UsersRestApi.Database.EF
         public DbSet<EmployeeEntity> Employees { get; set; }
         public DbSet<BuyerEntity> Buyers { get; set; }
         public DbSet<ImageEntity> Images { get; set; }
+        public DbSet<CartEntity> Carts { get; set; }
 
         public DatabaseContext() { }
 
@@ -39,6 +40,9 @@ namespace UsersRestApi.Database.EF
 
             modelBuilder.Entity<ImageEntity>().HasKey(k => k.ImageId);
             modelBuilder.Entity<ImageEntity>().Property(p => p.ImageId).ValueGeneratedOnAdd();
+
+            modelBuilder.Entity<CartEntity>().HasKey(k => k.CartId);
+            modelBuilder.Entity<CartEntity>().Property(p => p.CartId).ValueGeneratedOnAdd();
 
 
 

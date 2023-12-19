@@ -1,4 +1,6 @@
-﻿namespace UsersRestApi.Database.Entities
+﻿using ProductAPI.Database.Entities;
+
+namespace UsersRestApi.Database.Entities
 {
     public class ProductEntity
     {
@@ -15,6 +17,7 @@
         public SubCategoryEntity SubCategory { get; set; }
 
         public List<ImageEntity> Images { get; set; }
+        public List<CartEntity> Carts { get; set; }
 
     }
 }

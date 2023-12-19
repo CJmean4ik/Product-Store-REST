@@ -6,7 +6,6 @@ using ProductAPI.Database.Entities;
 using ProductAPI.DTO.User;
 using System.Security.Claims;
 using UsersRestApi.Database.Entities;
-using UsersRestApi.Entities;
 using UsersRestApi.Repositories.Interfaces;
 using UsersRestApi.Repositories.OperationStatus;
 using UsersRestApi.Services.EmaiAuthService;
@@ -43,16 +42,15 @@ namespace UsersRestApi.Services.UserService
 
                 if (userEntity is null) return OperationStatusResonceBuilder.CreateStatusWrongUsername();
 
-                var employee = _mapper.Map<BaseUserEntity, Employee>(userEntity);
-
-                if (!_passwordHasher.Decryption(userForLogin.EnteredPassword, employee.Salt, employee.HashPassword))
+                if (!_passwordHasher.Decryption(userForLogin.EnteredPassword, userEntity.Salt, userEntity.HashPassword))
                     return OperationStatusResonceBuilder.CreateStatusWrongPassword();
 
                 var claims = new List<Claim>
                 {
-                    new Claim(ClaimTypes.Name, employee.Username),
-                    new Claim(ClaimTypes.Email, employee.Email),
-                    new Claim(ClaimTypes.Role, employee.Role)
+                    new Claim(ClaimTypes.Name, userEntity.Username),
+                    new Claim(ClaimTypes.Email, userEntity.Email),
+                    new Claim(ClaimTypes.Role, userEntity.Role),
+                    new Claim(ClaimTypes.NameIdentifier, userEntity.Id.ToString())
                 };
 
                 ClaimsIdentity claimsIdentity = new ClaimsIdentity(claims, "Cookies");
@@ -66,6 +64,20 @@ namespace UsersRestApi.Services.UserService
                 return OperationStatusResonceBuilder.CreateStatusError(ex);
             }
         }
+
+        public async Task<OperationStatusResponseBase> LogOutUser(HttpContext httpContext)
+        {
+            try
+            {
+                await httpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+                return OperationStatusResonceBuilder.CreateStatusSuccessfully("User log-out!");
+            }
+            catch (Exception ex)
+            {
+                return OperationStatusResonceBuilder.CreateStatusError(ex);
+            }
+        }
+
         public OperationStatusResponseBase SendMailVerifyCode(UserBaseDto user)
         {
             try
