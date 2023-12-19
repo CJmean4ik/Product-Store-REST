@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using UsersRestApi.Database.EF;
 
@@ -11,9 +12,11 @@ using UsersRestApi.Database.EF;
 namespace UsersRestApi.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    partial class DatabaseContextModelSnapshot : ModelSnapshot
+    [Migration("20231218141523_CreateCartsTable")]
+    partial class CreateCartsTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -35,10 +38,6 @@ namespace UsersRestApi.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("HashPassword")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Role")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -201,6 +200,10 @@ namespace UsersRestApi.Migrations
             modelBuilder.Entity("UsersRestApi.Database.Entities.EmployeeEntity", b =>
                 {
                     b.HasBaseType("ProductAPI.Database.Entities.BaseUserEntity");
+
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.ToTable("Employees");
                 });

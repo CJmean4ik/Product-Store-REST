@@ -6,6 +6,5 @@ namespace UsersRestApi.Database.Entities
     [Table("Employees")]
     public class EmployeeEntity : BaseUserEntity
     {
-        public string Role { get; set; } = string.Empty;
     }
 }

@@ -3,6 +3,7 @@ using ProductAPI.Database.Entities;
 using ProductAPI.DTO.Image;
 using ProductAPI.DTO.Product;
 using ProductAPI.DTO.User;
+using ProductAPI.Models;
 using UsersRestApi.Database.Entities;
 using UsersRestApi.Entities;
 using UsersRestApi.Models;
@@ -72,6 +73,8 @@ namespace UsersRestApi.Mapper
 
             CreateMap<UserAuthorizePostDto, Employee>();
             CreateMap<EmployeeEntity, Employee>();
+            //CreateMap<BuyerEntity, Buyer>();
+
             CreateMap<UserAuthorizePostDto, EmployeeEntity>();
         }
 

@@ -7,5 +7,7 @@ namespace ProductAPI.Database.Entities
     {
         public string Surname { get; set; } = string.Empty;
         public string PhoneNumber { get; set; } = string.Empty;
+
+        public List<CartEntity> Carts { get; set; }
     }
 }
