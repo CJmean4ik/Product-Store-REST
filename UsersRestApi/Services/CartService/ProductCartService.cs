@@ -1,10 +1,10 @@
 ﻿using AutoMapper;
 using ProductAPI.Database.Entities;
 using ProductAPI.DTO.Carts;
+using ProductAPI.Models;
 using ProductAPI.Repositories.Interfaces;
 using System.Security.Claims;
 using System.Text.Json;
-using UsersRestApi.Database.Entities;
 using UsersRestApi.Repositories.OperationStatus;
 
 namespace ProductAPI.Services.CartService
@@ -12,10 +12,11 @@ namespace ProductAPI.Services.CartService
     public class ProductCartService
     {
         private ICartsRepository _cartsRepository;
-
-        public ProductCartService(ICartsRepository cartsRepository)
+        private IMapper _mapper;
+        public ProductCartService(ICartsRepository cartsRepository, IMapper mapper)
         {
             _cartsRepository = cartsRepository;
+            _mapper = mapper;
         }
 
         public OperationStatusResponseBase CreateAndSaveProductInSession(ProductCartsPostDto productCartsPost, HttpContext httpContext)
@@ -36,7 +37,6 @@ namespace ProductAPI.Services.CartService
                 return OperationStatusResonceBuilder.CreateStatusError(ex);
             }
         }
-
         public async Task<OperationStatusResponseBase> AddProductForAuthorizedBuyer(ProductCartsPostDto productCartsPost, HttpContext httpContext)
         {
             try
@@ -45,14 +45,9 @@ namespace ProductAPI.Services.CartService
                 var buyerId = int.Parse(buyerClaims!.Value);
                 var cart = new CartEntity()
                 {
-                    Buyer = new BuyerEntity
-                    {
-                        Id = buyerId
-                    },
-                    Product = new ProductEntity
-                    {
-                        ProductId = productCartsPost.ProductId
-                    }
+                    BuyerId = buyerId,
+                    ProductId = productCartsPost.ProductId,
+                    Count = productCartsPost.Count
                 };
 
                 var result = await _cartsRepository.Create(cart);
@@ -62,20 +57,17 @@ namespace ProductAPI.Services.CartService
             {
                 return OperationStatusResonceBuilder.CreateStatusError(ex);
             }
-
         }
 
         private List<ProductCartsPostDto>? TakeOldProductFromCart(HttpContext httpContext)
         {
-            if (!httpContext.Session.IsAvailable)           
+            if (!httpContext.Session.IsAvailable)
                 return null;
-            
 
             if (!httpContext.Session.TryGetValue(".Products-in-carts", out byte[]? productsJson))
                 return new List<ProductCartsPostDto>();
 
             var products = JsonSerializer.Deserialize<List<ProductCartsPostDto>>(productsJson);
-            httpContext.Session.Remove(".Products-in-carts");
 
             return products;
         }
@@ -85,6 +77,102 @@ namespace ProductAPI.Services.CartService
             httpContext.Session.SetString(".Products-in-carts", productsJson);
 
             return OperationStatusResonceBuilder.CreateStatusSuccessfully("Products for the shopping cart have been added to the session");
+        }
+
+        public List<Cart> GetAllProductsFromSession(HttpContext httpContext)
+        {
+            var result = TakeOldProductFromCart(httpContext);
+
+            if (result is null) throw new SessionNotAvailableExeption();
+
+            if (result.Count == 0) return new List<Cart>();
+
+            return _mapper.Map<List<ProductCartsPostDto>, List<Cart>>(result);
+        }
+
+        public async Task<List<Cart>> GetAllProductsForAuthorizedBuyer(HttpContext httpContext)
+        {
+            var result = TakeOldProductFromCart(httpContext)!;
+
+            if (result.Count != 0)
+                return _mapper.Map<List<ProductCartsPostDto>, List<Cart>>(result);
+
+            var productFromDb = await GetAllProductFromDatabase(httpContext);
+
+            return productFromDb;
+        }
+        private async Task<List<Cart>> GetAllProductFromDatabase(HttpContext httpContext)
+        {
+            var buyerClaims = httpContext.User.FindFirst(ClaimTypes.NameIdentifier);
+            var buyerId = int.Parse(buyerClaims!.Value);
+
+            var cart = await _cartsRepository.GetAllById(buyerId);
+
+            if (cart is null || cart.Count == 0) return new List<Cart>();
+
+            var productForSession = _mapper.Map<List<CartEntity>, List<ProductCartsPostDto>>(cart);
+            BindAllProductForCart(httpContext, productForSession);
+
+            var cartProducts = _mapper.Map<List<CartEntity>, List<Cart>>(cart);
+
+            return cartProducts;
+        }
+
+        public async Task<OperationStatusResponseBase> UpdateCountProductsForAutorizedBuyer(HttpContext httpContext, ProductCartsPutDto cartsPutDto)
+        {
+            var buyerClaims = httpContext.User.FindFirst(ClaimTypes.NameIdentifier);
+            var buyerId = int.Parse(buyerClaims!.Value);
+            var cart = new CartEntity()
+            {
+                BuyerId = buyerId,
+                ProductId = cartsPutDto.ProductId,
+                Count = cartsPutDto.Count
+            };
+            var result = await _cartsRepository.Update(cart);
+
+            return result;
+        }
+        public OperationStatusResponseBase UpdateProductCountInSession(HttpContext httpContext, ProductCartsPutDto cartsPutDto)
+        {
+            var products = TakeOldProductFromCart(httpContext);
+
+            foreach (var product in products)
+            {
+                if (product.ProductId == cartsPutDto.ProductId)
+                {
+                    product.Count += cartsPutDto.Count;
+                    break;
+                }
+            }
+            var result = BindAllProductForCart(httpContext, products);
+            return result;
+        }
+
+        public OperationStatusResponseBase RemoveProductCountFromSession(HttpContext httpContext, int productId)
+        {
+            var products = TakeOldProductFromCart(httpContext);
+
+            var removed = products!.RemoveAll(m => m.ProductId == productId);
+            if (removed == 0)
+                return OperationStatusResonceBuilder.CreateStatusWarning("The product could not be deleted from the shopping cart");
+
+            var result = BindAllProductForCart(httpContext, products);
+            return result;
+        }
+
+        public async Task<OperationStatusResponseBase> RemoveProductsForAutorizedBuyer(HttpContext httpContext, int productId)
+        {
+            var buyerClaims = httpContext.User.FindFirst(ClaimTypes.NameIdentifier);
+            var buyerId = int.Parse(buyerClaims!.Value);
+            var cart = new CartEntity()
+            {
+                BuyerId = buyerId,
+                ProductId = productId,
+            };
+
+            var result = await _cartsRepository.Delete(cart);
+
+            return result;
         }
     }
 }
