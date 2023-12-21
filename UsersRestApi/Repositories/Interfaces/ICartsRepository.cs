@@ -5,6 +5,7 @@ using UsersRestApi.Repositories.OperationStatus;
 namespace ProductAPI.Repositories.Interfaces
 {
     public interface ICartsRepository : IRepository<CartEntity,OperationStatusResponseBase>
-    {      
+    {
+        Task<List<CartEntity>> GetAllById(int buyerId);
     }
 }

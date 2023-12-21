@@ -1,7 +1,7 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using ProductAPI.DTO.Carts;
 using ProductAPI.Services.CartService;
+using UsersRestApi.Models;
 using UsersRestApi.Repositories.OperationStatus;
 
 namespace ProductAPI.Controllers
@@ -20,18 +20,18 @@ namespace ProductAPI.Controllers
         public async Task<ActionResult<OperationStatusResponseBase>> PostProductInCarts([FromBody] ProductCartsPostDto productCartsPost)
         {
             var result = _productCartService.CreateAndSaveProductInSession(productCartsPost, HttpContext);
-
-            if (result.Status == StatusName.Warning || result.Status == StatusName.Error)           
+             
+            if (result.Status == StatusName.Warning || result.Status == StatusName.Error)
                 return result;
-            
+
             if (User.Identity!.IsAuthenticated)
             {
-               result = await _productCartService.AddProductForAuthorizedBuyer(productCartsPost, HttpContext);
+                result = await _productCartService.AddProductForAuthorizedBuyer(productCartsPost, HttpContext);
 
-                if (result.Status == StatusName.Error)              
+                if (result.Status == StatusName.Error)
                     HttpContext.Session.Remove(".Products-in-carts");
-                
-               return result;
+
+                return result;
             }
 
             return result;
@@ -40,32 +40,79 @@ namespace ProductAPI.Controllers
         [HttpGet("api/v1/products/carts")]
         public async Task<ActionResult> GetProductForCarts()
         {
+            try
+            {                          
+                if (User.Identity.IsAuthenticated)
+                {
+                    var productFromDb = await _productCartService.GetAllProductsForAuthorizedBuyer(HttpContext);
 
-            if (User.Identity.IsAuthenticated)
-            {
-                //Добавление товара в таблицу carts, в Бд только для зарегистрированных пользователей 
-                //Метод по добавлению товара в сессию для корзины 
+                    if(productFromDb.Count == 0)
+                    return Json(new { cart = "empty" });
+
+                    return Json(productFromDb);
+                }
+
+                var product = _productCartService.GetAllProductsFromSession(HttpContext);
+
+                if (product.Count == 0)
+                    return Json(new { cart = "empty" });
+
+                return Json(product);
             }
+            catch (Exception ex)
+            {
+                return Json(ex.Message);
+            }
+        }
 
-            //Метод по получению товара из сесси для незарегистрированных пользователей 
-            //Товара в корзине может не быть из-за истекшей сессии 
-            throw new NotImplementedException();
+        [HttpPut("api/v1/products/carts")]
+        public async Task<ActionResult> PutProductCountInCarts([FromBody] ProductCartsPutDto cartsPutDto)
+        {
+            try
+            {
+                if (User.Identity.IsAuthenticated)
+                {
+                    var result = _productCartService.UpdateProductCountInSession(HttpContext, cartsPutDto);
+
+                    if (result.Status != StatusName.Successfully)                   
+                        return Json(result);
+                    
+                     result = await _productCartService.UpdateCountProductsForAutorizedBuyer(HttpContext, cartsPutDto);
+
+                    return Json(result);
+                }
+
+                var productFromSession = _productCartService.UpdateProductCountInSession(HttpContext, cartsPutDto);
+
+                return Json(productFromSession);
+            }
+            catch (Exception ex)
+            {
+                return Json(ex.Message);
+            }
         }
 
 
+
         [HttpDelete("api/v1/products/carts")]
-        public async Task<ActionResult> RemoveProductFromCarts()
+        public async Task<ActionResult> RemoveProductFromCarts([FromQuery]string Id)
         {
+            if (!int.TryParse(Id, out int productId))
+                return Json("Incorrect Id format");
+         
+            var result = _productCartService.RemoveProductCountFromSession(HttpContext, productId);
 
             if (User.Identity.IsAuthenticated)
-            {
-                //Добавление товара в таблицу carts, в Бд только для зарегистрированных пользователей 
-                //Метод по добавлению товара в сессию для корзины 
+            {              
+                if (result.Status != StatusName.Successfully)
+                    return Json(result);
+
+                var productResult = await _productCartService.RemoveProductsForAutorizedBuyer(HttpContext, productId);
+
+                return Json(productResult);
             }
 
-            //Метод по получению товара из сесси для незарегистрированных пользователей 
-            //Товара в корзине может не быть из-за истекшей сессии 
-            throw new NotImplementedException();
+            return Json(result);
         }
 
     }

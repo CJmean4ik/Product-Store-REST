@@ -1,9 +1,11 @@
 ﻿using AutoMapper;
 using ProductAPI.Database.Entities;
+using ProductAPI.DTO.Carts;
 using ProductAPI.DTO.Image;
 using ProductAPI.DTO.Product;
 using ProductAPI.DTO.User;
 using ProductAPI.Models;
+using System.Security.Cryptography;
 using UsersRestApi.Database.Entities;
 using UsersRestApi.Entities;
 using UsersRestApi.Models;
@@ -76,6 +78,46 @@ namespace UsersRestApi.Mapper
             //CreateMap<BuyerEntity, Buyer>();
 
             CreateMap<UserAuthorizePostDto, EmployeeEntity>();
+
+            CreateMap<ProductCartsPostDto, Cart>()
+                 .ForMember(dest => dest.CartId, opt => opt.MapFrom(_ => new Random().Next(0, 1000)))
+                 .ForMember(dest => dest.Count, opt => opt.MapFrom(src => src.Count))
+                 .ForMember(dest => dest.Product, opt => opt.MapFrom(src =>
+                 new Product
+                 {
+                     ProductId = src.ProductId,
+                     Name = src.ProductName,
+                     Price = src.Price,
+                     Image = new Image { PreviewImage = src.PreviewName }
+                 }));
+
+            CreateMap<CartEntity, ProductCartsPostDto>()
+              .ForMember(dest => dest.ProductId, opt => opt.MapFrom(src => src.ProductId))
+              .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.Product.Name))
+              .ForMember(dest => dest.InStock, opt => opt.MapFrom(src => src.Product.CountOnStorage == 0 ? false : true))
+              .ForMember(dest => dest.Price, opt => opt.MapFrom(src => src.Product.Price))
+              .ForMember(dest => dest.Count, opt => opt.MapFrom(src => src.Count))
+              .ForMember(dest => dest.PreviewName, opt => opt.MapFrom(src => src.Product.PreviewImageName));          
+
+
+            CreateMap<CartEntity, Cart>()
+               .ForMember(dest => dest.CartId, opt => opt.MapFrom(src => src.CartId))
+               .ForMember(dest => dest.Product, opt => opt.MapFrom(src =>
+               new Product
+               {
+                   ProductId = src.ProductId,
+                   Name = src.Product.Name,
+                   Price = src.Product.Price,
+                   CountOnStorage = src.Product.CountOnStorage,
+                   Image = new Image { PreviewImage = src.Product.PreviewImageName }
+               }))
+               .ForMember(dest => dest.Buyer, opt => opt.MapFrom(src =>
+               new Buyer 
+               { 
+                   Id = src.BuyerId,
+                   Username = src.Buyer.Username
+               }));
+
         }
 
     }

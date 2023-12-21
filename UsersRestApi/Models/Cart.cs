@@ -7,5 +7,6 @@ namespace ProductAPI.Models
         public int CartId { get; set; }
         public Product Product { get; set; }
         public Buyer Buyer { get; set; }
+        public int Count { get; set; }
     }
 }
