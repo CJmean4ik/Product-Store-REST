@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using ProductAPI.DTO.Carts;
 using ProductAPI.Services.CartService;
-using UsersRestApi.Models;
 using UsersRestApi.Repositories.OperationStatus;
 
 namespace ProductAPI.Controllers
@@ -91,8 +90,6 @@ namespace ProductAPI.Controllers
                 return Json(ex.Message);
             }
         }
-
-
 
         [HttpDelete("api/v1/products/carts")]
         public async Task<ActionResult> RemoveProductFromCarts([FromQuery]string Id)
