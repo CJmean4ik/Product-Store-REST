@@ -81,15 +81,11 @@ namespace UsersRestApi.Mapper
 
             CreateMap<ProductCartsPostDto, Cart>()
                  .ForMember(dest => dest.CartId, opt => opt.MapFrom(_ => new Random().Next(0, 1000)))
-                 .ForMember(dest => dest.Count, opt => opt.MapFrom(src => src.Count))
-                 .ForMember(dest => dest.Product, opt => opt.MapFrom(src =>
-                 new Product
-                 {
-                     ProductId = src.ProductId,
-                     Name = src.ProductName,
-                     Price = src.Price,
-                     Image = new Image { PreviewImage = src.PreviewName }
-                 }));
+               .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.ProductName))
+               .ForMember(dest => dest.Price, opt => opt.MapFrom(src => src.Price))
+               .ForMember(dest => dest.Count, opt => opt.MapFrom(src => src.Count))
+               .ForMember(dest => dest.InStock, opt => opt.MapFrom(src => src.InStock))
+               .ForMember(dest => dest.PreviewName, opt => opt.MapFrom(src => src.PreviewName));
 
             CreateMap<CartEntity, ProductCartsPostDto>()
               .ForMember(dest => dest.ProductId, opt => opt.MapFrom(src => src.ProductId))
@@ -97,27 +93,16 @@ namespace UsersRestApi.Mapper
               .ForMember(dest => dest.InStock, opt => opt.MapFrom(src => src.Product.CountOnStorage == 0 ? false : true))
               .ForMember(dest => dest.Price, opt => opt.MapFrom(src => src.Product.Price))
               .ForMember(dest => dest.Count, opt => opt.MapFrom(src => src.Count))
-              .ForMember(dest => dest.PreviewName, opt => opt.MapFrom(src => src.Product.PreviewImageName));          
+              .ForMember(dest => dest.PreviewName, opt => opt.MapFrom(src => src.Product.PreviewImageName));
 
 
             CreateMap<CartEntity, Cart>()
                .ForMember(dest => dest.CartId, opt => opt.MapFrom(src => src.CartId))
-               .ForMember(dest => dest.Product, opt => opt.MapFrom(src =>
-               new Product
-               {
-                   ProductId = src.ProductId,
-                   Name = src.Product.Name,
-                   Price = src.Product.Price,
-                   CountOnStorage = src.Product.CountOnStorage,
-                   Image = new Image { PreviewImage = src.Product.PreviewImageName }
-               }))
-               .ForMember(dest => dest.Buyer, opt => opt.MapFrom(src =>
-               new Buyer 
-               { 
-                   Id = src.BuyerId,
-                   Username = src.Buyer.Username
-               }));
-
+               .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.Product.Name))
+               .ForMember(dest => dest.Price, opt => opt.MapFrom(src => src.Product.Price))
+               .ForMember(dest => dest.Count, opt => opt.MapFrom(src => src.Count))
+               .ForMember(dest => dest.InStock, opt => opt.MapFrom(src => src.Product.CountOnStorage == 0 ? false : true))
+               .ForMember(dest => dest.PreviewName, opt => opt.MapFrom(src => src.Product.PreviewImageName));
         }
 
     }
