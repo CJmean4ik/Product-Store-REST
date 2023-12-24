@@ -5,9 +5,8 @@ using UsersRestApi.Database.Entities;
 using UsersRestApi.Models;
 using UsersRestApi.Repositories;
 using UsersRestApi.Repositories.OperationStatus;
-using UsersRestApi.Services.ImageService;
 
-namespace UsersRestApi.Services.ProductService
+namespace ProductAPI.Services
 {
     public class ProductsService
     {

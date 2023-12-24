@@ -1,10 +1,8 @@
-﻿using UsersRestApi.Models;
-
-namespace UsersRestApi.Repositories.Interfaces
+﻿namespace UsersRestApi.Repositories.Interfaces
 {
     public interface IImageReposiroty<T, R, D>
     {      
-        R CreateImage(T image,string path, bool creatCopyIfExist = false);
-        R RemoveImageFile(string path);
+        R Create(T image,string path, bool creatCopyIfExist = false);
+        R Remove(string path);
     }
 }

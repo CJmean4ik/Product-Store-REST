@@ -8,7 +8,7 @@ using UsersRestApi.Repositories;
 using UsersRestApi.Repositories.Interfaces;
 using UsersRestApi.Repositories.OperationStatus;
 
-namespace UsersRestApi.Services.ImageService
+namespace ProductAPI.Services
 {
     public class ImagesService
     {
@@ -70,7 +70,7 @@ namespace UsersRestApi.Services.ImageService
         private OperationStatusResponseBase createPreviewImage(IFormFile preview, bool replaceImageIfExist)
         {
             string path = _imageConfig.PreviewPath.Replace("FILE_NAME", preview.FileName);
-            var result = _imageRepository.CreateImage(preview, path, replaceImageIfExist);
+            var result = _imageRepository.Create(preview, path, replaceImageIfExist);
             return result;
         }
         private async Task<List<OperationStatusResponseBase>> createCollectionImages(ImagePostDto imagePost, bool replaceImageIfExist)
@@ -81,7 +81,7 @@ namespace UsersRestApi.Services.ImageService
             foreach (var file in imagePost.Images)
             {
                 string path = _imageConfig.CollectionPath.Replace("FILE_NAME", file.FileName);
-                var addedImageResult = _imageRepository.CreateImage(file, path, replaceImageIfExist);
+                var addedImageResult = _imageRepository.Create(file, path, replaceImageIfExist);
                 if (addedImageResult.Status == StatusName.Successfully)
                 {
                     addedImages.Add(new ImageEntity
@@ -122,7 +122,7 @@ namespace UsersRestApi.Services.ImageService
 
                 path = _imageConfig.CollectionPath.Replace("FILE_NAME", imageParams.ImageName);
 
-                var result = _imageRepository.RemoveImageFile(path);
+                var result = _imageRepository.Remove(path);
 
                 if (result.Status == StatusName.Successfully)
                     imagesForRemoving.Add(imageParams.ImageName);
@@ -135,17 +135,17 @@ namespace UsersRestApi.Services.ImageService
             var results = new List<OperationStatusResponseBase>();
             string path = string.Empty;
 
-            if (imagePut.IsPreviewUpdating)           
+            if (imagePut.IsPreviewUpdating)
                 path = _imageConfig.PreviewPath.Replace("FILE_NAME", imagePut.OldImageName);
-            
+
             path = _imageConfig.CollectionPath.Replace("FILE_NAME", imagePut.OldImageName);
 
-            var result = _imageRepository.RemoveImageFile(path);
+            var result = _imageRepository.Remove(path);
 
             results.Add(result);
 
-            if (result.Status == StatusName.Successfully)           
-                result = _imageRepository.CreateImage(imagePut.NewImage!, "");
+            if (result.Status == StatusName.Successfully)
+                result = _imageRepository.Create(imagePut.NewImage!, "");
 
             results.Add(await _repository.UpdateImages(imagePut.ProductId, imagePut.OldImageName!, imagePut.NewImage!.FileName));
             return results;

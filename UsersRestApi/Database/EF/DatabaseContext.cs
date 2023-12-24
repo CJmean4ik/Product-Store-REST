@@ -16,6 +16,7 @@ namespace UsersRestApi.Database.EF
         public DbSet<BuyerEntity> Buyers { get; set; }
         public DbSet<ImageEntity> Images { get; set; }
         public DbSet<CartEntity> Carts { get; set; }
+        public DbSet<FavoritesEntity> Favorites { get; set; }
 
         public DatabaseContext() { }
 
@@ -44,7 +45,8 @@ namespace UsersRestApi.Database.EF
             modelBuilder.Entity<CartEntity>().HasKey(k => k.CartId);
             modelBuilder.Entity<CartEntity>().Property(p => p.CartId).ValueGeneratedOnAdd();
 
-
+            modelBuilder.Entity<FavoritesEntity>().HasKey(k => k.FavouriteId);
+            modelBuilder.Entity<FavoritesEntity>().Property(p => p.FavouriteId).ValueGeneratedOnAdd();
 
         }
     }

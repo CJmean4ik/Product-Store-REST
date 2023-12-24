@@ -6,7 +6,10 @@ using UsersRestApi.Repositories.OperationStatus;
 
 namespace UsersRestApi.Repositories.Implementers
 {
-    public class ImageRepository : IImageReposiroty<IFormFile, OperationStatusResponseBase, ImagePutDto>
+    public class ImageRepository 
+        : IImageReposiroty<IFormFile,
+                           OperationStatusResponseBase,
+                           ImagePutDto>
     {
         private ImageConfig _imageConfig;
 
@@ -14,7 +17,7 @@ namespace UsersRestApi.Repositories.Implementers
         {
             _imageConfig = imageConfig.Value;
         }
-        public OperationStatusResponseBase CreateImage(IFormFile file,string path, bool creatCopyIfExist = false)
+        public OperationStatusResponseBase Create(IFormFile file,string path, bool creatCopyIfExist = false)
         {
             try
             {
@@ -34,7 +37,7 @@ namespace UsersRestApi.Repositories.Implementers
                     .CreateStatusError(message: $"Failed to create images with the name: {file.FileName}. Error: " + ex.Message);
             }
         }   
-        public OperationStatusResponseBase RemoveImageFile(string path)
+        public OperationStatusResponseBase Remove(string path)
         {
             if (!File.Exists(path))
                 return OperationStatusResonceBuilder.CreateStatusWarning($"File by path: {path} doesnt found");

@@ -2,11 +2,11 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ProductAPI.DTO.Product;
+using ProductAPI.Services;
 using UsersRestApi.Models;
 using UsersRestApi.Repositories.OperationStatus;
-using UsersRestApi.Services.ProductService;
 
-namespace UsersRestApi.Controllers
+namespace ProductAPI.Controllers.ProductControllers
 {
     [ApiController]
     [Authorize(Roles = "admin, contentMaker")]
@@ -14,7 +14,7 @@ namespace UsersRestApi.Controllers
     {
         private ProductsService _productsService;
         private IMapper _mapper;
-        public ProductsController(ProductsService productsService,IMapper mapper)
+        public ProductsController(ProductsService productsService, IMapper mapper)
         {
             _productsService = productsService;
             _mapper = mapper;
@@ -59,7 +59,7 @@ namespace UsersRestApi.Controllers
         [HttpPost("api/v1/products")]
         public async Task<ActionResult<OperationStatusResponseBase>> PostProduct([FromForm] ProductPostDto product)
         {
-            var result = await _productsService.CreateProduct(product);         
+            var result = await _productsService.CreateProduct(product);
             return Json(result);
         }
 

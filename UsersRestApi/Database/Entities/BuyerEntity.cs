@@ -9,5 +9,6 @@ namespace ProductAPI.Database.Entities
         public string PhoneNumber { get; set; } = string.Empty;
 
         public List<CartEntity> Carts { get; set; }
+        public List<FavoritesEntity> Favourites { get; set; }
     }
 }

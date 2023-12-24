@@ -29,7 +29,6 @@ namespace ProductAPI.Repositories.Implementers
                 return OperationStatusResonceBuilder.CreateStatusError(ex);
             }
         }
-
         public async Task<OperationStatusResponseBase> Delete(CartEntity? entity)
         {
             try
@@ -51,13 +50,7 @@ namespace ProductAPI.Repositories.Implementers
             {
                 return OperationStatusResonceBuilder.CreateStatusError(ex);
             }
-        }
-
-        public Task<List<CartEntity>?> GetAll()
-        {
-            throw new NotImplementedException();
-        }
-
+        }       
         public async Task<List<CartEntity>> GetAllById(int buyerId)
         {
             try
@@ -74,7 +67,6 @@ namespace ProductAPI.Repositories.Implementers
                 return null;
             }
         }
-
         public async Task<OperationStatusResponseBase> Update(CartEntity? entity)
         {
             try

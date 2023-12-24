@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ProductAPI.DTO.User;
+using ProductAPI.Services;
 using UsersRestApi.Repositories.OperationStatus;
-using UsersRestApi.Services.UserService;
 
 namespace UsersRestApi.Controllers
 {

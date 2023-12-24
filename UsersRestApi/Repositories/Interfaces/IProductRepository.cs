@@ -8,7 +8,7 @@ namespace UsersRestApi.Repositories
     {
         Task<ProductEntity?> GetById(int id);
         Task<List<ProductEntity>?> GetLimint(int limit);
-
+        Task<List<ProductEntity>?> GetAll();
         Task<OperationStatusResponseBase> AddImages(int productId, List<ImageEntity> images);
         Task<OperationStatusResponseBase> UpdateImages(int productId, string oldName, string newName);
         Task<OperationStatusResponseBase> RemoveImages(int? productId, List<string> imageName);

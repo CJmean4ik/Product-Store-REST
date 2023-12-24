@@ -3,33 +3,43 @@ using ProductAPI.Database.Entities;
 using ProductAPI.DTO.Carts;
 using ProductAPI.Models;
 using ProductAPI.Repositories.Interfaces;
+using ProductAPI.Services.SessionService;
 using System.Security.Claims;
 using System.Text.Json;
 using UsersRestApi.Repositories.OperationStatus;
 
-namespace ProductAPI.Services.CartService
+namespace ProductAPI.Services
 {
-    public class ProductCartService
+    public class CartService
     {
+        private const string SESSION_KEY = ".Carts";
+
         private ICartsRepository _cartsRepository;
         private IMapper _mapper;
-        public ProductCartService(ICartsRepository cartsRepository, IMapper mapper)
+        private ISessionWorker<OperationStatusResponseBase> _sessionWorker;
+
+        public CartService(ICartsRepository cartsRepository,
+            IMapper mapper,
+            ISessionWorker<OperationStatusResponseBase> sessionWorker)
         {
             _cartsRepository = cartsRepository;
             _mapper = mapper;
+            _sessionWorker = sessionWorker;
         }
 
         public OperationStatusResponseBase CreateAndSaveProductInSession(ProductCartsPostDto productCartsPost, HttpContext httpContext)
         {
             try
             {
-                var products = TakeOldProductFromCart(httpContext);
+                var products = _sessionWorker.GetEntitiesByKey<Cart>(httpContext, SESSION_KEY);
 
                 if (products is null)
-                    return OperationStatusResonceBuilder.CreateStatusWarning("This session is not active for you at the moment");
+                    return OperationStatusResonceBuilder.CreateStatusWarning("This session is not active or wrong key");
 
-                products.Add(productCartsPost);
-                var result = BindAllProductForCart(httpContext, products);
+                var productCart = _mapper.Map<ProductCartsPostDto, Cart>(productCartsPost);
+
+                products.Add(productCart);
+                var result = _sessionWorker.BindEntitiesInSession(httpContext, products, SESSION_KEY);
                 return result;
             }
             catch (Exception ex)
@@ -41,7 +51,7 @@ namespace ProductAPI.Services.CartService
         {
             try
             {
-                CartEntity cart = CreateCartEntity(httpContext,productCartsPost.ProductId,productCartsPost.Count);
+                CartEntity cart = CreateCartEntity(httpContext, productCartsPost.ProductId, productCartsPost.Count);
                 var result = await _cartsRepository.Create(cart);
                 return result;
             }
@@ -49,28 +59,23 @@ namespace ProductAPI.Services.CartService
             {
                 return OperationStatusResonceBuilder.CreateStatusError(ex);
             }
-        }
+        }      
         public List<Cart> GetAllProductsFromSession(HttpContext httpContext)
         {
-            var result = TakeOldProductFromCart(httpContext);
+            var result = _sessionWorker.GetEntitiesByKey<Cart>(httpContext,SESSION_KEY);
 
             if (result is null) throw new SessionNotAvailableExeption();
 
-            if (result.Count == 0) return new List<Cart>();
+            if (result.Count == 0) return result;
 
-            return _mapper.Map<List<ProductCartsPostDto>, List<Cart>>(result);
+            return result;
         }
         public async Task<List<Cart>> GetAllProductsForAuthorizedBuyer(HttpContext httpContext)
-        {
-            var result = TakeOldProductFromCart(httpContext)!;
-
-            if (result.Count != 0)
-                return _mapper.Map<List<ProductCartsPostDto>, List<Cart>>(result);
-
+        { 
             var productFromDb = await GetAllProductFromDatabase(httpContext);
 
             return productFromDb;
-        }
+        }     
         public async Task<OperationStatusResponseBase> UpdateCountProductsForAutorizedBuyer(HttpContext httpContext, ProductCartsPutDto cartsPutDto)
         {
             CartEntity cart = CreateCartEntity(httpContext, cartsPutDto.ProductId, cartsPutDto.Count);
@@ -81,7 +86,7 @@ namespace ProductAPI.Services.CartService
         }
         public OperationStatusResponseBase UpdateProductCountInSession(HttpContext httpContext, ProductCartsPutDto cartsPutDto)
         {
-            var products = TakeOldProductFromCart(httpContext);
+            var products = _sessionWorker.GetEntitiesByKey<Cart>(httpContext, SESSION_KEY);
 
             foreach (var product in products)
             {
@@ -91,26 +96,26 @@ namespace ProductAPI.Services.CartService
                     break;
                 }
             }
-            var result = BindAllProductForCart(httpContext, products);
+            var result = _sessionWorker.BindEntitiesInSession(httpContext, products, SESSION_KEY);
             return result;
-        }
+        }     
         public OperationStatusResponseBase RemoveProductCountFromSession(HttpContext httpContext, int productId)
         {
-            var products = TakeOldProductFromCart(httpContext);
+            var products = _sessionWorker.GetEntitiesByKey<Cart>(httpContext, SESSION_KEY);
 
             var removed = products!.RemoveAll(m => m.ProductId == productId);
             if (removed == 0)
                 return OperationStatusResonceBuilder.CreateStatusWarning("The product could not be deleted from the shopping cart");
 
-            var result = BindAllProductForCart(httpContext, products);
+            var result = _sessionWorker.BindEntitiesInSession(httpContext, products, SESSION_KEY);
             return result;
         }
         public async Task<OperationStatusResponseBase> RemoveProductsForAutorizedBuyer(HttpContext httpContext, int productId)
         {
             CartEntity cart = CreateCartEntity(httpContext, productId: productId);
             var result = await _cartsRepository.Delete(cart);
-            return result;       
-        }     
+            return result;
+        }            
         private CartEntity CreateCartEntity(HttpContext httpContext, int productId, int count = 0)
         {
             var buyerClaims = httpContext.User.FindFirst(ClaimTypes.NameIdentifier);
@@ -122,26 +127,7 @@ namespace ProductAPI.Services.CartService
                 Count = count
             };
             return cart;
-        }
-        private List<ProductCartsPostDto>? TakeOldProductFromCart(HttpContext httpContext)
-        {
-            if (!httpContext.Session.IsAvailable)
-                return null;
-
-            if (!httpContext.Session.TryGetValue(".Products-in-carts", out byte[]? productsJson))
-                return new List<ProductCartsPostDto>();
-
-            var products = JsonSerializer.Deserialize<List<ProductCartsPostDto>>(productsJson);
-
-            return products;
-        }
-        private OperationStatusResponseBase BindAllProductForCart(HttpContext httpContext, List<ProductCartsPostDto> products)
-        {
-            var productsJson = JsonSerializer.Serialize<List<ProductCartsPostDto>>(products);
-            httpContext.Session.SetString(".Products-in-carts", productsJson);
-
-            return OperationStatusResonceBuilder.CreateStatusSuccessfully("Products for the shopping cart have been added to the session");
-        }
+        }         
         private async Task<List<Cart>> GetAllProductFromDatabase(HttpContext httpContext)
         {
             var buyerClaims = httpContext.User.FindFirst(ClaimTypes.NameIdentifier);
@@ -151,11 +137,10 @@ namespace ProductAPI.Services.CartService
 
             if (cart is null || cart.Count == 0) return new List<Cart>();
 
-            var productForSession = _mapper.Map<List<CartEntity>, List<ProductCartsPostDto>>(cart);
-            BindAllProductForCart(httpContext, productForSession);
-
             var cartProducts = _mapper.Map<List<CartEntity>, List<Cart>>(cart);
 
+            _sessionWorker.BindEntitiesInSession(httpContext, cartProducts, SESSION_KEY);
+         
             return cartProducts;
         }
     }

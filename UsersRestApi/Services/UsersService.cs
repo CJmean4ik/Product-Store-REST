@@ -11,7 +11,7 @@ using UsersRestApi.Repositories.OperationStatus;
 using UsersRestApi.Services.EmaiAuthService;
 using UsersRestApi.Services.Password;
 
-namespace UsersRestApi.Services.UserService
+namespace ProductAPI.Services
 {
     public class UsersService
     {
@@ -111,12 +111,12 @@ namespace UsersRestApi.Services.UserService
         {
             if (!_memoryCache.TryGetValue("CurrentUser", out UserBaseDto? userDto))
                 return OperationStatusResonceBuilder
-                    .CreateCustomStatus<object>("User data was unexpectedly lost", StatusName.Warning,null);
+                    .CreateCustomStatus<object>("User data was unexpectedly lost", StatusName.Warning, null);
 
 
             BaseUserEntity userForAdding = new BaseUserEntity();
 
-            if (userDto is EmployeeRegistrationPostDto employee)          
+            if (userDto is EmployeeRegistrationPostDto employee)
                 userForAdding = _mapper.Map<EmployeeRegistrationPostDto, EmployeeEntity>(employee);
 
             if (userDto is BuyerRegistrationPostDto buyer)

@@ -1,11 +1,11 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ProductAPI.DTO.Image;
+using ProductAPI.Services;
 using UsersRestApi.Repositories;
 using UsersRestApi.Repositories.OperationStatus;
-using UsersRestApi.Services.ImageService;
 
-namespace UsersRestApi.Controllers
+namespace ProductAPI.Controllers.ProductControllers
 {
     [Authorize(Roles = "admin, contentMaker")]
     [ApiController]
@@ -22,7 +22,7 @@ namespace UsersRestApi.Controllers
         [AllowAnonymous]
         public IActionResult GetImage(string typeImage, string imageName)
         {
-            var result = _imagesService.GetImageByType(typeImage,imageName);
+            var result = _imagesService.GetImageByType(typeImage, imageName);
             return result;
         }
 
@@ -42,13 +42,13 @@ namespace UsersRestApi.Controllers
             var result = await _imagesService.RemoveImage(imageDel);
             return Json(result);
         }
-           
+
         [HttpPut("api/v1/products/images")]
         public async Task<ActionResult<OperationStatusResponseBase>> PutCollectionImage([FromForm] ImagePutDto imagePut)
         {
-            if (imagePut.NewImage == null || imagePut.OldImageName == "")           
+            if (imagePut.NewImage == null || imagePut.OldImageName == "")
                 return OperationStatusResonceBuilder.CreateStatusWarning("Cannot updating image by empty file or name");
-            
+
             var result = await _imagesService.UpdateImages(imagePut);
             return Json(result);
         }

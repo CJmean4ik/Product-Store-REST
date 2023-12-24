@@ -6,7 +6,8 @@ using ProductAPI.Database.Entities;
 using ProductAPI.DTO.Image;
 using ProductAPI.Repositories.Implementers;
 using ProductAPI.Repositories.Interfaces;
-using ProductAPI.Services.CartService;
+using ProductAPI.Services;
+using ProductAPI.Services.SessionService;
 using UsersRestApi.Database.EF;
 using UsersRestApi.Database.EF.UpdateComponents;
 using UsersRestApi.Models;
@@ -15,11 +16,8 @@ using UsersRestApi.Repositories.Implementers;
 using UsersRestApi.Repositories.Interfaces;
 using UsersRestApi.Repositories.OperationStatus;
 using UsersRestApi.Services.EmaiAuthService;
-using UsersRestApi.Services.ImageService;
 using UsersRestApi.Services.Password;
 using UsersRestApi.Services.PasswordHasherService;
-using UsersRestApi.Services.ProductService;
-using UsersRestApi.Services.UserService;
 
 #endregion
 
@@ -29,24 +27,21 @@ namespace UsersRestApi
     {
         public static void Main(string[] args)
         {
-
             var builder = WebApplication.CreateBuilder(args);
 
             string CONNECTION_STRING = builder.Configuration.GetConnectionString("DefaultConnection")!;
 
             builder.Services.AddControllers();
             builder.Services.AddAutoMapper(typeof(Program));
-
             builder.Services.AddMemoryCache();
 
             builder.Services.AddDistributedMemoryCache();
-            builder.Services.AddSession(option => 
+            builder.Services.AddSession(option =>
             {
-                option.Cookie.Name = ".AspNetCore.Session.ProductCarts";
-                option.IdleTimeout = TimeSpan.FromDays(5);
+                option.Cookie.Name = ".AspNetCore.Session.Products";
+                option.IdleTimeout = TimeSpan.FromDays(10);
                 option.Cookie.IsEssential = true;
             });
-
 
             builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
                .AddCookie(option => option.LoginPath = "/sign-in");
@@ -56,32 +51,31 @@ namespace UsersRestApi
 
             builder.Services.Configure<ImageConfig>(builder.Configuration.GetSection("PathToImages"));
 
-            builder.Services.AddScoped<IProductRepository, ProductRepository>();
-            builder.Services.AddScoped<IProductModifierArgumentChanger, ProductModifierArgumentChanger>();
-            builder.Services.AddScoped<IUserRepository<BaseUserEntity, OperationStatusResponseBase>, UserRepository>();
-            builder.Services.AddScoped<IPasswordHasher<BaseUserEntity>, PasswordHasher>();
-            builder.Services.AddScoped<IEmailVerifySender, EmailVerifySender>();
-            builder.Services.AddScoped<IImageReposiroty<IFormFile, OperationStatusResponseBase, ImagePutDto>, ImageRepository>();
+            builder.Services.AddScoped<IProductRepository, ProductRepository>()
+                            .AddScoped<IProductModifierArgumentChanger, ProductModifierArgumentChanger>()
+                            .AddScoped<IUserRepository<BaseUserEntity, OperationStatusResponseBase>, UserRepository>()
+                            .AddScoped<IPasswordHasher<BaseUserEntity>, PasswordHasher>()
+                            .AddScoped<IEmailVerifySender, EmailVerifySender>()
+                            .AddScoped<IImageReposiroty<IFormFile, OperationStatusResponseBase, ImagePutDto>, ImageRepository>()
+                            .AddScoped<ICartsRepository, CartsRepository>()
+                            .AddScoped<IFavoritesRepository,FavoritesRepository>()
+                            .AddScoped<ISessionWorker<OperationStatusResponseBase>,SessionWorker>();
 
-            builder.Services.AddScoped<ICartsRepository, CartsRepository>();
-
-            builder.Services.AddScoped<ProductsService>();
-            builder.Services.AddScoped<UsersService>();
-            builder.Services.AddScoped<ImagesService>();
-
-            builder.Services.AddScoped<ProductCartService>();
+            builder.Services.AddScoped<ProductsService>()
+                            .AddScoped<UsersService>()
+                            .AddScoped<ImagesService>()
+                            .AddScoped<FavoritesService>()
+                            .AddScoped<CartService>();
 
             var app = builder.Build();
 
             app.UseAuthentication();
-
             app.UseAuthorization();
-
             app.MapControllers();
-
             app.UseSession();
 
             app.Run();
+
         }
     }
 }
