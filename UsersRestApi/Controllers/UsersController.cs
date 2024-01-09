@@ -25,7 +25,7 @@ namespace UsersRestApi.Controllers
 
         [HttpPost("/log-out")]
         [Authorize(Roles = "admin,contentMaker,buyer,manager")]
-        public async Task<ActionResult<OperationStatusResponseBase>> SignOut()
+        public async Task<ActionResult<OperationStatusResponseBase>> LogOut()
         {
             var result = await _usersService.LogOutUser(HttpContext);
             return Json(result);
@@ -33,7 +33,7 @@ namespace UsersRestApi.Controllers
 
 
         [HttpPost("/sign-up/employee")]
-        [Authorize(Roles = "admin")]
+        //[Authorize(Roles = "admin")]
         public ActionResult<OperationStatusResponseBase> SignUp([FromForm] EmployeeRegistrationPostDto userForRegistering)
         {
             var result = registerUserBasedOnRole(userForRegistering);
@@ -71,6 +71,7 @@ namespace UsersRestApi.Controllers
             var result = await _usersService.RegisterUser();
 
             HttpContext.Response.Cookies.Delete("IsMailVerify");
+
             return Json(result);
         }
 

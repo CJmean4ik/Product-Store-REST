@@ -10,7 +10,7 @@ namespace ProductAPI.Services.SessionService
             var entitiesJson = JsonSerializer.Serialize(entities);
             context.Session.SetString(key, entitiesJson);
 
-            return OperationStatusResonceBuilder.CreateStatusSuccessfully("Products have been changed in session");
+            return OperationStatusResonceBuilder.CreateStatusSuccessfully("Entity have been saved in session");
         }
 
         public List<T>? GetEntitiesByKey<T>(HttpContext context, string key)

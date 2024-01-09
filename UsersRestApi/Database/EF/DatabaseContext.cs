@@ -17,6 +17,8 @@ namespace UsersRestApi.Database.EF
         public DbSet<ImageEntity> Images { get; set; }
         public DbSet<CartEntity> Carts { get; set; }
         public DbSet<FavoritesEntity> Favorites { get; set; }
+        public DbSet<OrderEntity> Orders { get; set; }
+        public DbSet<OrderProductEntity> OrderProducts { get; set; }
 
         public DatabaseContext() { }
 
@@ -47,6 +49,13 @@ namespace UsersRestApi.Database.EF
 
             modelBuilder.Entity<FavoritesEntity>().HasKey(k => k.FavouriteId);
             modelBuilder.Entity<FavoritesEntity>().Property(p => p.FavouriteId).ValueGeneratedOnAdd();
+
+            modelBuilder.Entity<OrderEntity>().HasKey(k => k.OrderId);
+            modelBuilder.Entity<OrderEntity>().Property(p => p.OrderId).ValueGeneratedOnAdd();
+            modelBuilder.Entity<OrderEntity>().Property(p => p.OrderStatus).HasDefaultValue("New");
+
+            modelBuilder.Entity<OrderProductEntity>().HasKey(k => k.Id);
+            modelBuilder.Entity<OrderProductEntity>().Property(p => p.Id).ValueGeneratedOnAdd();
 
         }
     }

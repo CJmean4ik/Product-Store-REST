@@ -33,12 +33,13 @@ namespace UsersRestApi.Repositories.Interfaces
                 }
 
                 if (entity is BuyerEntity buyer)
-                    await _db.Users.AddAsync(buyer);
+                    await _db.Buyers.AddAsync(buyer);
 
                 if (entity is EmployeeEntity employee)
-                    await _db.Users.AddAsync(employee);
+                    await _db.Employees.AddAsync(employee);
 
-                await _db.SaveChangesAsync();
+                var id = await _db.SaveChangesAsync();
+
 
                 _logger.LogInformation($"Users Successful added id: [{entity.Id}]");
                 return OperationStatusResonceBuilder.CreateStatusSuccessfully("User have been added in Database");
@@ -46,6 +47,31 @@ namespace UsersRestApi.Repositories.Interfaces
             catch (Exception ex)
             {
                 string ERROR_MESSAGE = $"Failed to create entity. Reason: [{ex.Message}]. Time: " + DateTime.Now;
+                _logger.LogWarning(ERROR_MESSAGE);
+                return OperationStatusResonceBuilder.CreateStatusError(message: ERROR_MESSAGE);
+            }
+        }
+
+        public async Task<OperationStatusResponseBase> Delete(BaseUserEntity? entity)
+        {
+            try
+            {
+                var user = await _db.Users
+                    .Where(w => w.Id == entity.Id)
+                    .FirstOrDefaultAsync();
+
+                if (user is null)          
+                    return OperationStatusResonceBuilder.CreateStatusWarning($"User by id: {entity.Id} not found");
+                
+               _db.Users.Remove(user);
+
+                var id = await _db.SaveChangesAsync();
+
+                return OperationStatusResonceBuilder.CreateStatusSuccessfully("User have been removed from Database");
+            }
+            catch (Exception ex)
+            {
+                string ERROR_MESSAGE = $"Failed to removed entity. Reason: [{ex.Message}]. Time: " + DateTime.Now;
                 _logger.LogWarning(ERROR_MESSAGE);
                 return OperationStatusResonceBuilder.CreateStatusError(message: ERROR_MESSAGE);
             }
@@ -75,7 +101,7 @@ namespace UsersRestApi.Repositories.Interfaces
                 _logger.LogWarning(ERROR_MESSAGE);
                 return null;
             }
-        }        
+        }
     }
 }
 

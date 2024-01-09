@@ -19,5 +19,6 @@ namespace UsersRestApi.Database.Entities
         public List<ImageEntity> Images { get; set; }
         public List<CartEntity> Carts { get; set; }
         public List<FavoritesEntity> Favourites { get; set; }
+        public List<OrderProductEntity> OrderProducts { get; set; }
     }
 }

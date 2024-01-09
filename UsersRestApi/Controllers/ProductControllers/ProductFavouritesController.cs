@@ -57,8 +57,8 @@ namespace ProductAPI.Controllers.ProductControllers
                 result = await _favouritesService.RemoveFavoriteProductFromDatabase(HttpContext, productId);
 
             return Json(result);
-
         }
+
         [HttpPost("api/v1/products/favourites")]
         public async Task<ActionResult> PostFavouriteProducts([FromBody] ProductFavoritsPostDto favouritsPostDto)
         {

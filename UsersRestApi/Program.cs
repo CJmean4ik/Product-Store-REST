@@ -6,6 +6,7 @@ using ProductAPI.Database.Entities;
 using ProductAPI.DTO.Image;
 using ProductAPI.Repositories.Implementers;
 using ProductAPI.Repositories.Interfaces;
+using ProductAPI.Repositories.Interfaces.Operations;
 using ProductAPI.Services;
 using ProductAPI.Services.SessionService;
 using UsersRestApi.Database.EF;
@@ -59,13 +60,15 @@ namespace UsersRestApi
                             .AddScoped<IImageReposiroty<IFormFile, OperationStatusResponseBase, ImagePutDto>, ImageRepository>()
                             .AddScoped<ICartsRepository, CartsRepository>()
                             .AddScoped<IFavoritesRepository,FavoritesRepository>()
-                            .AddScoped<ISessionWorker<OperationStatusResponseBase>,SessionWorker>();
+                            .AddScoped<ISessionWorker<OperationStatusResponseBase>,SessionWorker>()
+                            .AddScoped<IOrderRepository, OrderRepository>();
 
             builder.Services.AddScoped<ProductsService>()
                             .AddScoped<UsersService>()
                             .AddScoped<ImagesService>()
                             .AddScoped<FavoritesService>()
-                            .AddScoped<CartService>();
+                            .AddScoped<CartService>()
+                            .AddScoped<OrderService>();
 
             var app = builder.Build();
 
