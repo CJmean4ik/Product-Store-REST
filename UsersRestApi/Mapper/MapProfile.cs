@@ -72,6 +72,16 @@ namespace UsersRestApi.Mapper
                   .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.Email))
                   .ForMember(dest => dest.PhoneNumber, opt => opt.MapFrom(src => src.PhoneNumber))
                   .ForMember(dest => dest.Role, opt => opt.MapFrom(_ => "buyer"));
+
+            CreateMap<OrderPutDto, OrderEntity>()
+             .ForMember(dest => dest.OrderId, opt => opt.MapFrom(src => src.OrderId))
+             .ForMember(dest => dest.PaymentType, opt => opt.MapFrom(src => src.PaymentType))
+             .ForMember(dest => dest.DeliveryType, opt => opt.MapFrom(src => src.DeliveryType))
+             .ForMember(dest => dest.DeliveryAddress, opt => opt.MapFrom(src => src.DeliveryAddress))
+             .ForMember(dest => dest.OrderStatus, opt => opt.MapFrom(src => src.OrderStatus))
+             .ForMember(dest => dest.TotalPrice, opt => opt.MapFrom(src => src.TotalPrice))
+             .ForMember(dest => dest.City, opt => opt.MapFrom(src => src.City))
+             .ForMember(dest => dest.Buyer, opt => opt.MapFrom(src => new BuyerEntity {PhoneNumber = src.PhoneNumber }));
         }
         private void ProductMapping()
         {

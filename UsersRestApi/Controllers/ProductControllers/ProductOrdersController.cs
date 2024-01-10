@@ -1,5 +1,4 @@
-﻿using AutoMapper;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ProductAPI.DTO.Orders;
 using ProductAPI.Services;
@@ -26,7 +25,6 @@ namespace ProductAPI.Controllers.ProductControllers
         }
 
         [HttpPost("api/v1/orders")]
-        [AllowAnonymous]
         public async Task<ActionResult> PostOrder([FromBody] OrderPostDto orderPost)
         {
             var result = await _orderService.AddOrder(orderPost);
@@ -34,17 +32,18 @@ namespace ProductAPI.Controllers.ProductControllers
         }
 
         [HttpDelete("api/v1/orders")]
-        [AllowAnonymous]
         public async Task<ActionResult> DelOrder([FromQuery] int buyerId)
         {
-           var result = await _orderService.RemoveOrder(buyerId);
-           return Json(result);
+            var result = await _orderService.RemoveOrder(buyerId);
+            return Json(result);
         }
 
+        [AllowAnonymous]
         [HttpPut("api/v1/orders")]
-        public async Task<ActionResult> PutOrder([FromBody] OrderPostDto orderPost)
+        public async Task<ActionResult> PutOrder([FromBody] OrderPutDto orderPutDto)
         {
-            throw new NotImplementedException();
+            var result = await _orderService.UpdateOrder(orderPutDto);
+            return Json(result);
         }
     }
 }

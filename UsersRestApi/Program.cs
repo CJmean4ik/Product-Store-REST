@@ -2,6 +2,8 @@
 
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
+using ProductAPI.Database.EF.UpdateComponents.Order;
+using ProductAPI.Database.EF.UpdateComponents.Product;
 using ProductAPI.Database.Entities;
 using ProductAPI.DTO.Image;
 using ProductAPI.Repositories.Implementers;
@@ -10,7 +12,6 @@ using ProductAPI.Repositories.Interfaces.Operations;
 using ProductAPI.Services;
 using ProductAPI.Services.SessionService;
 using UsersRestApi.Database.EF;
-using UsersRestApi.Database.EF.UpdateComponents;
 using UsersRestApi.Models;
 using UsersRestApi.Repositories;
 using UsersRestApi.Repositories.Implementers;
@@ -54,6 +55,7 @@ namespace UsersRestApi
 
             builder.Services.AddScoped<IProductRepository, ProductRepository>()
                             .AddScoped<IProductModifierArgumentChanger, ProductModifierArgumentChanger>()
+                            .AddScoped<IOrderModifireArgumentChanger, OrderModifierArgumentChanger>()
                             .AddScoped<IUserRepository<BaseUserEntity, OperationStatusResponseBase>, UserRepository>()
                             .AddScoped<IPasswordHasher<BaseUserEntity>, PasswordHasher>()
                             .AddScoped<IEmailVerifySender, EmailVerifySender>()

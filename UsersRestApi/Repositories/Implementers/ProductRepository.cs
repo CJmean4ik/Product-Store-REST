@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using ProductAPI.Database.EF.UpdateComponents.Product;
 using System.Text;
 using UsersRestApi.Database.EF;
-using UsersRestApi.Database.EF.UpdateComponents;
 using UsersRestApi.Database.Entities;
 using UsersRestApi.Repositories.OperationStatus;
 

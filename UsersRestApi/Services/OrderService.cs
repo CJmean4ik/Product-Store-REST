@@ -41,7 +41,6 @@ namespace ProductAPI.Services
                 return new JsonResult(ex.Message);
             }
         }
-
         public async Task<OperationStatusResponseBase> AddOrder(OrderPostDto orderPost)
         {
             var orderEntity = _mapper.Map<OrderPostDto, OrderEntity>(orderPost);
@@ -65,6 +64,12 @@ namespace ProductAPI.Services
             var userRemovingResult = await _userRepository.Delete(new BuyerEntity { Id = buyerId });
 
             return userRemovingResult;      
+        }
+        public async Task<OperationStatusResponseBase> UpdateOrder(OrderPutDto orderPutDto)
+        {
+            var newOrder = _mapper.Map<OrderPutDto, OrderEntity>(orderPutDto);
+            var result = await _orderRepository.Update(newOrder);
+            return result;
         }
     }
 }

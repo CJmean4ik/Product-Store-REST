@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using ProductAPI.Database.EF.UpdateComponents.Order;
 using ProductAPI.Database.Entities;
-using ProductAPI.Models;
 using ProductAPI.Repositories.Interfaces.Operations;
 using UsersRestApi.Database.EF;
 using UsersRestApi.Repositories.OperationStatus;
@@ -10,10 +10,12 @@ namespace ProductAPI.Repositories.Implementers
     public class OrderRepository : IOrderRepository
     {
         private DatabaseContext _db;
+        private IOrderModifireArgumentChanger _argumentChanger;
 
-        public OrderRepository(DatabaseContext db)
+        public OrderRepository(DatabaseContext db, IOrderModifireArgumentChanger argumentChanger)
         {
             _db = db;
+            _argumentChanger = argumentChanger;
         }
 
         public async Task<OperationStatusResponseBase> Create(OrderEntity? entity)
@@ -87,9 +89,33 @@ namespace ProductAPI.Repositories.Implementers
 
             return orders;
         }
-        public Task<OperationStatusResponseBase> Update(OrderEntity? entity)
+        public async Task<OperationStatusResponseBase> Update(OrderEntity? entity)
         {
-            throw new NotImplementedException();
+            try
+            {
+                var orderFromDb = await _db.Orders
+                    .Include(i => i.Buyer)
+                    .Where(w => w.OrderId == entity.OrderId)
+                    .FirstOrDefaultAsync();
+
+                if (orderFromDb is null)
+                {
+                    return OperationStatusResonceBuilder
+                        .CreateCustomStatus<object>($"Entity for updating by id: [{entity.OrderId}] not found", StatusName.Warning, null);
+                }
+
+                _argumentChanger.SearchModifieArguments(orderFromDb, entity);
+                _argumentChanger.ChangeFoundModifieArguments(orderFromDb, _db);
+
+                await _argumentChanger.SaveChangesAsync(_db); 
+                
+                return OperationStatusResonceBuilder.CreateStatusUpdating(entity);
+            }
+            catch (Exception ex)
+            {
+                string ERROR_MESSAGE = $"Failed to update entity. Message: [{ex.Message}]. Reason: [detailed error description]. Time: " + DateTime.Now;             
+                return OperationStatusResonceBuilder.CreateStatusError(message: ERROR_MESSAGE);
+            }
         }
     }
 }
