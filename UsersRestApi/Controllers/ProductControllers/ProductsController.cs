@@ -23,27 +23,26 @@ namespace ProductAPI.Controllers.ProductControllers
 
         [HttpGet("api/v1/products")]
         [AllowAnonymous]
-        public async Task<ActionResult<List<Product>>> GetProducts()
+        public async Task<ActionResult<List<Product>>> GetProducts([FromQuery] string id = "", [FromQuery] string limit = "")
         {
             try
             {
                 List<Product> products;
                 string NOT_FOUND_TEXT = "Products not found";
-                var queryParametrs = Request.Query;
 
-                if (queryParametrs.ContainsKey("id"))
+                if (id != "")
                 {
-                    if (!int.TryParse(queryParametrs["id"], out int id)) return Json("id is not a number");
+                    if (!int.TryParse(id, out int ID)) return Json("id is not a number");
 
-                    products = await _productsService.GetProducts(id: id);
+                    products = await _productsService.GetProducts(id: ID);
                     return products is null ? Json($"Product by id: {id} not found") : products;
                 }
 
-                if (queryParametrs.ContainsKey("_limit"))
+                if (limit != "")
                 {
-                    if (!int.TryParse(queryParametrs["_limit"], out int limit)) return Json("limit is not a number");
+                    if (!int.TryParse(limit, out int LIMIT)) return Json("limit is not a number");
 
-                    products = await _productsService.GetProducts(limit: limit);
+                    products = await _productsService.GetProducts(limit: LIMIT);
                     return products is null ? Json(NOT_FOUND_TEXT) : products;
                 }
 

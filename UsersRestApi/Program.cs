@@ -33,6 +33,8 @@ namespace UsersRestApi
 
             string CONNECTION_STRING = builder.Configuration.GetConnectionString("DefaultConnection")!;
 
+            builder.Services.AddSwaggerGen();
+
             builder.Services.AddControllers();
             builder.Services.AddAutoMapper(typeof(Program));
             builder.Services.AddMemoryCache();
@@ -79,6 +81,14 @@ namespace UsersRestApi
             app.MapControllers();
             app.UseSession();
 
+            app.UseSwagger()
+               .UseSwaggerUI(config => 
+               {
+                   config.RoutePrefix = string.Empty;
+                   config.SwaggerEndpoint("/swagger/v1/swagger.json", "PRODUCT REST API");
+               });
+
+         
             app.Run();
 
         }
